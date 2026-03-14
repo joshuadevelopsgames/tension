@@ -93,13 +93,39 @@ export default function AppLayout({
       const TENSION_AI_ID = "00000000-0000-0000-0000-000000000001";
       const hasTensionDM = dmItems.some((d) => d.otherUserId === TENSION_AI_ID);
       if (!hasTensionDM) {
-        const { data: conv } = await supabase.from("dm_conversations").insert({ workspace_id: wsId }).select("id").single();
-        if (conv?.id) {
-          await supabase.from("dm_participants").insert([
-            { dm_conversation_id: conv.id, user_id: userId },
-            { dm_conversation_id: conv.id, user_id: TENSION_AI_ID },
-          ]);
-          dmItems.unshift({ id: conv.id, otherUserId: TENSION_AI_ID, otherUserName: "Tension AI", otherUserAvatar: null });
+        try {
+          const { data: conv, error: convError } = await supabase
+            .from("dm_conversations")
+            .insert({ workspace_id: wsId })
+            .select("id")
+            .single();
+
+          if (convError) throw convError;
+
+          if (conv?.id) {
+            const { error: partError } = await supabase.from("dm_participants").insert([
+              { dm_conversation_id: conv.id, user_id: userId },
+              { dm_conversation_id: conv.id, user_id: TENSION_AI_ID },
+            ]);
+            if (partError) throw partError;
+
+            dmItems.unshift({ 
+              id: conv.id, 
+              otherUserId: TENSION_AI_ID, 
+              otherUserName: "Tension AI", 
+              otherUserAvatar: null 
+            });
+          }
+        } catch (err) {
+          console.error("Failed to auto-create Tension AI DM:", err);
+          // Fallback: manually push it to the list so user sees it, 
+          // though messaging might fail until RLS is fixed or DB is synced.
+          dmItems.unshift({ 
+             id: "temp-ai-dm", 
+             otherUserId: TENSION_AI_ID, 
+             otherUserName: "Tension AI", 
+             otherUserAvatar: null 
+          });
         }
       }
 
