@@ -171,13 +171,43 @@ export function DMView({
       return;
     }
 
+    let targetDmId = dmId;
+
+    // Handle temporary AI DM ID
+    if (dmId === "temp-ai-dm") {
+      const { data: conv, error: convError } = await supabase
+        .from("dm_conversations")
+        .insert({ workspace_id: w.workspace_id })
+        .select("id")
+        .single();
+      
+      if (convError || !conv) {
+        setMessages((prev) => prev.filter((m) => m.id !== realId));
+        console.error("Failed to create real AI DM:", convError);
+        return;
+      }
+
+      const { error: partError } = await supabase.from("dm_participants").insert([
+        { dm_conversation_id: conv.id, user_id: currentUserId },
+        { dm_conversation_id: conv.id, user_id: TENSION_AI_USER_ID },
+      ]);
+
+      if (partError) {
+        setMessages((prev) => prev.filter((m) => m.id !== realId));
+        console.error("Failed to add participants to real AI DM:", partError);
+        return;
+      }
+
+      targetDmId = conv.id;
+    }
+
     const { data, error } = await supabase
       .from("messages")
       .insert({
         id: realId,
         workspace_id: w.workspace_id,
         sender_id: currentUserId,
-        dm_conversation_id: dmId,
+        dm_conversation_id: targetDmId,
         body: toSend,
       })
       .select()
@@ -196,12 +226,18 @@ export function DMView({
         await fetch("/api/ai/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: toSend, dmId, workspaceId: w.workspace_id }),
+          body: JSON.stringify({ message: toSend, dmId: targetDmId, workspaceId: w.workspace_id }),
         });
       } catch (e) {
         console.error("AI chat error:", e);
       } finally {
         setAiThinking(false);
+        // If we just created the conversation, navigate to the real ID so refreshes work
+        if (dmId === "temp-ai-dm" && targetDmId !== "temp-ai-dm") {
+          const params = new URLSearchParams(window.location.search);
+          params.set("id", targetDmId);
+          window.history.replaceState(null, "", `${window.location.pathname}?${params.toString()}`);
+        }
       }
     }
   }

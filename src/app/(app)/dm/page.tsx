@@ -25,10 +25,21 @@ function DMPageContent() {
       setCurrentUserId(user.id);
 
       // Load participants with user details
-      const { data: rawParticipants } = await supabase
-        .from("dm_participants")
-        .select("user_id, users(full_name, avatar_url)")
-        .eq("dm_conversation_id", id);
+      const TENSION_AI_ID = "00000000-0000-0000-0000-000000000001";
+      let rawParticipants: any[] | null = null;
+
+      if (id === "temp-ai-dm") {
+        rawParticipants = [
+          { user_id: user.id, users: { full_name: user.user_metadata?.full_name || "You", avatar_url: user.user_metadata?.avatar_url || null } },
+          { user_id: TENSION_AI_ID, users: { full_name: "Tension AI", avatar_url: null } }
+        ];
+      } else {
+        const { data } = await supabase
+          .from("dm_participants")
+          .select("user_id, users(full_name, avatar_url)")
+          .eq("dm_conversation_id", id);
+        rawParticipants = data;
+      }
 
       if (!rawParticipants || rawParticipants.length === 0) {
         router.push("/");

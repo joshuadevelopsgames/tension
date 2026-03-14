@@ -31,107 +31,116 @@ export default function AppLayout({
 
   useEffect(() => {
     async function loadData() {
-      const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.push("/login");
-        return;
-      }
+      try {
+        const supabase = createClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          router.push("/login");
+          return;
+        }
 
-      const userId = session.user.id;
-      setCurrentUserId(userId);
+        const userId = session.user.id;
+        setCurrentUserId(userId);
 
-      const { data: memberships } = await supabase
-        .from("workspace_members")
-        .select("workspace_id")
-        .eq("user_id", userId)
-        .limit(1);
+        const { data: memberships } = await supabase
+          .from("workspace_members")
+          .select("workspace_id")
+          .eq("user_id", userId)
+          .limit(1);
 
-      const wsId = memberships?.[0]?.workspace_id;
-      if (!wsId) {
-        setHasWorkspace(false);
-        setLoading(false);
-        return;
-      }
+        const wsId = memberships?.[0]?.workspace_id;
+        if (!wsId) {
+          setHasWorkspace(false);
+          setLoading(false);
+          return;
+        }
 
-      // Load workspace + channels in parallel
-      const [wsResult, channelsResult, myDMsResult] = await Promise.all([
-        supabase.from("workspaces").select("name, slug").eq("id", wsId).single(),
-        supabase.from("channels").select("id, name, slug").eq("workspace_id", wsId).order("name"),
-        supabase.from("dm_participants").select("dm_conversation_id").eq("user_id", userId),
-      ]);
+        // Load workspace + channels in parallel
+        const [wsResult, channelsResult, myDMsResult] = await Promise.all([
+          supabase.from("workspaces").select("name, slug").eq("id", wsId).single(),
+          supabase.from("channels").select("id, name, slug").eq("workspace_id", wsId).order("name"),
+          supabase.from("dm_participants").select("dm_conversation_id").eq("user_id", userId),
+        ]);
 
-      setWorkspaceId(wsId);
-      if (wsResult.data) {
-        setWorkspaceName(wsResult.data.name);
-        setWorkspaceSlug(wsResult.data.slug ?? "");
-      }
-      if (channelsResult.data) setChannels(channelsResult.data);
+        if (wsResult.error) throw wsResult.error;
+        if (channelsResult.error) throw channelsResult.error;
+        if (myDMsResult.error) throw myDMsResult.error;
 
-      // Load DM conversations — get other participants' info
-      const myConvIds = (myDMsResult.data ?? []).map((r: any) => r.dm_conversation_id);
-      const dmItems: DMItem[] = [];
+        setWorkspaceId(wsId);
+        if (wsResult.data) {
+          setWorkspaceName(wsResult.data.name);
+          setWorkspaceSlug(wsResult.data.slug ?? "");
+        }
+        if (channelsResult.data) setChannels(channelsResult.data);
 
-      if (myConvIds.length > 0) {
-        const { data: others } = await supabase
-          .from("dm_participants")
-          .select("dm_conversation_id, user_id, users(full_name, avatar_url)")
-          .in("dm_conversation_id", myConvIds)
-          .neq("user_id", userId);
+        // Load DM conversations — get other participants' info
+        const myConvIds = (myDMsResult.data ?? []).map((r: any) => r.dm_conversation_id);
+        const dmItems: DMItem[] = [];
 
-        (others ?? []).forEach((row: any) => {
-          dmItems.push({
-            id: row.dm_conversation_id,
-            otherUserId: row.user_id,
-            otherUserName: row.users?.full_name ?? `User ${row.user_id.slice(0, 4)}`,
-            otherUserAvatar: row.users?.avatar_url ?? null,
-          });
-        });
-      }
+        if (myConvIds.length > 0) {
+          const { data: others, error: othersError } = await supabase
+            .from("dm_participants")
+            .select("dm_conversation_id, user_id, users(full_name, avatar_url)")
+            .in("dm_conversation_id", myConvIds)
+            .neq("user_id", userId);
 
-      // Ensure a Tension AI DM always exists — auto-create if not
-      const TENSION_AI_ID = "00000000-0000-0000-0000-000000000001";
-      const hasTensionDM = dmItems.some((d) => d.otherUserId === TENSION_AI_ID);
-      if (!hasTensionDM) {
-        try {
-          const { data: conv, error: convError } = await supabase
-            .from("dm_conversations")
-            .insert({ workspace_id: wsId })
-            .select("id")
-            .single();
+          if (othersError) throw othersError;
 
-          if (convError) throw convError;
-
-          if (conv?.id) {
-            const { error: partError } = await supabase.from("dm_participants").insert([
-              { dm_conversation_id: conv.id, user_id: userId },
-              { dm_conversation_id: conv.id, user_id: TENSION_AI_ID },
-            ]);
-            if (partError) throw partError;
-
-            dmItems.unshift({ 
-              id: conv.id, 
-              otherUserId: TENSION_AI_ID, 
-              otherUserName: "Tension AI", 
-              otherUserAvatar: null 
+          (others ?? []).forEach((row: any) => {
+            dmItems.push({
+              id: row.dm_conversation_id,
+              otherUserId: row.user_id,
+              otherUserName: row.users?.full_name ?? `User ${row.user_id.slice(0, 4)}`,
+              otherUserAvatar: row.users?.avatar_url ?? null,
             });
-          }
-        } catch (err) {
-          console.error("Failed to auto-create Tension AI DM:", err);
-          // Fallback: manually push it to the list so user sees it, 
-          // though messaging might fail until RLS is fixed or DB is synced.
-          dmItems.unshift({ 
-             id: "temp-ai-dm", 
-             otherUserId: TENSION_AI_ID, 
-             otherUserName: "Tension AI", 
-             otherUserAvatar: null 
           });
         }
+
+        // Ensure a Tension AI DM always exists — auto-create if not
+        const TENSION_AI_ID = "00000000-0000-0000-0000-000000000001";
+        const hasTensionDM = dmItems.some((d) => d.otherUserId === TENSION_AI_ID);
+        if (!hasTensionDM) {
+          try {
+            const { data: conv, error: convError } = await supabase
+              .from("dm_conversations")
+              .insert({ workspace_id: wsId })
+              .select("id")
+              .single();
+
+            if (convError) throw convError;
+
+            if (conv?.id) {
+              const { error: partError } = await supabase.from("dm_participants").insert([
+                { dm_conversation_id: conv.id, user_id: userId },
+                { dm_conversation_id: conv.id, user_id: TENSION_AI_ID },
+              ]);
+              if (partError) throw partError;
+
+              dmItems.unshift({ 
+                id: conv.id, 
+                otherUserId: TENSION_AI_ID, 
+                otherUserName: "Tension AI", 
+                otherUserAvatar: null 
+              });
+            }
+          } catch (err: any) {
+            console.error("Failed to auto-create Tension AI DM:", err?.message || err);
+            // Fallback: manually push it to the list so user sees it
+            dmItems.unshift({ 
+               id: "temp-ai-dm", 
+               otherUserId: TENSION_AI_ID, 
+               otherUserName: "Tension AI", 
+               otherUserAvatar: null 
+            });
+          }
+        }
+
+        setDMs(dmItems);
+        setLoading(false);
+      } catch (error: any) {
+        console.error("Fatal error in loadData:", error?.message || error);
+        setLoading(false); // Clear loading even on error so user doesn't get stuck
       }
-
-      setDMs(dmItems);
-
-      setLoading(false);
     }
 
     loadData();
