@@ -34,9 +34,8 @@ export function WorkspaceMembersModal({
   const [copied, setCopied] = useState(false);
   const supabase = createClient();
 
-  const inviteLink = typeof window !== "undefined"
-    ? `${window.location.origin}/join?workspace=${workspaceSlug}`
-    : `/join?workspace=${workspaceSlug}`;
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== "undefined" ? window.location.origin : "");
+  const inviteLink = `${baseUrl}/join?workspace=${workspaceSlug}`;
 
   useEffect(() => {
     if (!isOpen) return;
