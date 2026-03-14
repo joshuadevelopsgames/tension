@@ -316,6 +316,7 @@ function SidebarContent({
         })()}
       </div>
 
+
       <CreateChannelModal
         isOpen={isCreateChannelOpen}
         onClose={() => setIsCreateChannelOpen(false)}

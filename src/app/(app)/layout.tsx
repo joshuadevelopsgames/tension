@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
+import { UpdateChecker } from "@/components/UpdateChecker";
 import { startWindowDrag } from "@/lib/tauri";
 
 type DMItem = {
@@ -143,15 +144,18 @@ export default function AppLayout({
   }
 
   return (
-    <AppShell
-      workspaceName={workspaceName}
-      workspaceSlug={workspaceSlug}
-      workspaceId={workspaceId}
-      currentUserId={currentUserId}
-      channels={channels}
-      dms={dms}
-    >
-      {children}
-    </AppShell>
+    <>
+      <AppShell
+        workspaceName={workspaceName}
+        workspaceSlug={workspaceSlug}
+        workspaceId={workspaceId}
+        currentUserId={currentUserId}
+        channels={channels}
+        dms={dms}
+      >
+        {children}
+      </AppShell>
+      <UpdateChecker />
+    </>
   );
 }

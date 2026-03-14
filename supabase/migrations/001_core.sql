@@ -107,11 +107,11 @@ create policy "Users can read channels in their workspace"
     where wm.workspace_id = channels.workspace_id and wm.user_id = auth.uid()
   ));
 
-create policy "Users can read DMs they participate in"
+create policy "Users can read DMs in their workspace"
   on public.dm_conversations for select
   using (exists (
-    select 1 from public.dm_participants dp
-    where dp.dm_conversation_id = dm_conversations.id and dp.user_id = auth.uid()
+    select 1 from public.workspace_members wm
+    where wm.workspace_id = dm_conversations.workspace_id and wm.user_id = auth.uid()
   ));
 
 create policy "Users can read messages in their workspace channels/DMs"
