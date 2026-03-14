@@ -1,0 +1,12 @@
+-- Run after migrations. Creates a demo workspace and channel.
+-- Replace the placeholder user_id with a real auth.users id after signing up.
+
+-- Example: create workspace and channel (run manually after first user signup)
+-- insert into public.workspaces (id, name, slug) values
+--   ('00000000-0000-0000-0000-000000000001', 'Acme Marketing', 'acme');
+-- insert into public.workspace_members (workspace_id, user_id, role) values
+--   ('00000000-0000-0000-0000-000000000001', 'YOUR_USER_UUID', 'owner');
+-- insert into public.channels (workspace_id, name, slug, topic, client_tag, campaign_tag) values
+--   ('00000000-0000-0000-0000-000000000001', 'general', 'general', 'Company-wide', null, null),
+--   ('00000000-0000-0000-0000-000000000001', 'acme-q2', 'acme-q2', 'Acme Q2 campaign', 'Acme', 'Q2'),
+--   ('00000000-0000-0000-0000-000000000001', 'creative', 'creative', 'Creative review', null, null);
