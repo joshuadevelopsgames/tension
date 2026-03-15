@@ -36,17 +36,22 @@ export async function POST(req: NextRequest) {
     const authorizedDmIds = (userDmsResult.data ?? []).map(d => d.dm_conversation_id);
 
     // FETCH GLOBAL MEMORY: Recent messages across all authorized channels and DMs
+    // Only fetch if we have authorized IDs to avoid broad scans or errors
     const [channelMsgs, dmMsgs] = await Promise.all([
-      supabaseAdmin.from("messages")
-        .select("body, channel_id, sender_id, channels(name), users(full_name)")
-        .in("channel_id", channelIds)
-        .order("created_at", { ascending: false })
-        .limit(30),
-      supabaseAdmin.from("messages")
-        .select("body, dm_conversation_id, sender_id, users(full_name)")
-        .in("dm_conversation_id", authorizedDmIds)
-        .order("created_at", { ascending: false })
-        .limit(30)
+      channelIds.length > 0 
+        ? supabaseAdmin.from("messages")
+            .select("body, channel_id, sender_id, channels(name), users(full_name)")
+            .in("channel_id", channelIds)
+            .order("created_at", { ascending: false })
+            .limit(15) 
+        : Promise.resolve({ data: [] }),
+      authorizedDmIds.length > 0
+        ? supabaseAdmin.from("messages")
+            .select("body, dm_conversation_id, sender_id, users(full_name)")
+            .in("dm_conversation_id", authorizedDmIds)
+            .order("created_at", { ascending: false })
+            .limit(15)
+        : Promise.resolve({ data: [] })
     ]);
 
     const staticAppContext = `

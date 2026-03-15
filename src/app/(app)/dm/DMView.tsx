@@ -232,7 +232,7 @@ export function DMView({
           content: m.body
         }));
 
-        await fetch("/api/ai/chat", {
+        const res = await fetch("/api/ai/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ 
@@ -243,6 +243,12 @@ export function DMView({
             history 
           }),
         });
+
+        if (!res.ok) {
+          const errorData = await res.json();
+          console.error("AI API error:", errorData);
+          setAiThinking(false);
+        }
       } catch (e) {
         console.error("AI chat error:", e);
         setAiThinking(false); // Only clear on error now
