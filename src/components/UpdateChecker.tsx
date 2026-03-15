@@ -70,8 +70,11 @@ export function UpdateChecker() {
             id: "app-update-found",
           });
         }
-      } catch (err) {
-        console.error("Update check failed:", err);
+      } catch (err: any) {
+        // Silently ignore "valid release JSON" errors — they just mean no releases exist yet
+        if (!err?.toString().includes("valid release JSON")) {
+          console.error("Update check failed:", err);
+        }
       }
     }, 4000);
 
