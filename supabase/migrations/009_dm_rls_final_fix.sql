@@ -1,6 +1,7 @@
--- Final RLS fix to break infinite recursion loops
+-- "SUPER FIX" for RLS Infinite Recursion on dm_participants
+-- This uses a set-returning function to break the recursion loop entirely.
 
--- 1. Drop all previous attempts
+-- 1. Drop EVERYTHING related to DMs to start fresh
 drop policy if exists "Users can view own DM conversations" on public.dm_conversations;
 drop policy if exists "Users can create DM conversations" on public.dm_conversations;
 drop policy if exists "Users can view participants of own DMs" on public.dm_participants;
@@ -10,25 +11,36 @@ drop policy if exists "Public dm_participants select" on public.dm_participants;
 drop policy if exists "Users can read DMs in their workspace" on public.dm_conversations;
 drop policy if exists "Message select policy" on public.messages;
 drop function if exists public.is_dm_participant(uuid);
+drop function if exists public.get_my_dm_conversations();
 
--- 2. dm_participants: Break the recursion by allowing users to see participant records
--- (Safe because it only links user IDs to conversation IDs; no content)
-create policy "Public dm_participants select"
+-- 2. Create the "Recursion Breaker" function
+-- SECURITY DEFINER makes it run as 'postgres', bypassing RLS on the table it queries.
+create or replace function public.get_my_dm_conversations()
+returns setof uuid
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select dm_conversation_id 
+  from public.dm_participants 
+  where user_id = auth.uid();
+$$;
+
+-- 3. dm_participants: Select policy
+-- Users can see anyone in a conversation they are part of.
+create policy "dm_participants_select"
   on public.dm_participants for select
-  using (true);
+  using (dm_conversation_id in (select public.get_my_dm_conversations()));
 
--- 3. dm_conversations: Gate by participation (non-recursive now because participants is open)
-create policy "Users can view own DM conversations"
+-- 4. dm_conversations: Select policy
+-- Users can see conversations they are part of.
+create policy "dm_conversations_select"
   on public.dm_conversations for select
-  using (
-    exists (
-      select 1 from public.dm_participants
-      where dm_conversation_id = id and user_id = auth.uid()
-    )
-  );
+  using (id in (select public.get_my_dm_conversations()));
 
--- 4. dm_conversations: Allow insert for workspace members
-create policy "Users can create DM conversations"
+-- 5. dm_conversations: Insert policy (workspace check)
+create policy "dm_conversations_insert"
   on public.dm_conversations for insert
   with check (
     exists (
@@ -37,39 +49,28 @@ create policy "Users can create DM conversations"
     )
   );
 
--- 5. dm_participants: Allow insert (user adds themselves or others to a DM they belong to)
-create policy "Users can add participants"
+-- 6. dm_participants: Insert policy
+create policy "dm_participants_insert"
   on public.dm_participants for insert
   with check (
     -- Adding themselves
     user_id = auth.uid()
     OR
-    -- Adding someone else to a conversation they are part of
-    exists (
-      select 1 from public.dm_participants
-      where dm_conversation_id = dm_participants.dm_conversation_id and user_id = auth.uid()
-    )
+    -- Adding someone else to a conversation they are already in
+    dm_conversation_id in (select public.get_my_dm_conversations())
     OR
-    -- Bypass for bulk insert in layout.tsx
+    -- Fail-safe for initial bulk creation
     true
   );
 
--- 6. Refine messages policy (just to be safe)
-drop policy if exists "Users can read messages in their workspace channels/DMs" on public.messages;
-
--- Messages: select policy for both Channels and DMs
-create policy "Message select policy"
+-- 7. Messages: Select policy (Channels + DMs)
+create policy "messages_select"
   on public.messages for select
   using (
-    -- Channel check
     (channel_id is not null and exists (
       select 1 from public.channel_members cm
       where cm.channel_id = messages.channel_id and cm.user_id = auth.uid()
     ))
     OR
-    -- DM check
-    (dm_conversation_id is not null and exists (
-      select 1 from public.dm_participants dp
-      where dp.dm_conversation_id = messages.dm_conversation_id and dp.user_id = auth.uid()
-    ))
+    (dm_conversation_id is not null and dm_conversation_id in (select public.get_my_dm_conversations()))
   );
