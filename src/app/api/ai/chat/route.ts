@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     );
 
     // Step 1: Classify the message
-    const classifyModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const classifyModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     const classifyResult = await classifyModel.generateContent({
       contents: [{
         role: "user",
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
         .join("\n\n");
 
       const tensionModel = genAI.getGenerativeModel({
-        model: "gemini-2.0-flash",
+        model: "gemini-2.5-flash",
         systemInstruction: `You are Tension AI, the built-in assistant for the Tension team communication app. You ONLY answer questions using the knowledge base provided below. If the answer isn't in the knowledge base, say you don't have that information yet but the user can reach out to the Tension team. Be concise, helpful, and friendly.\n\n--- TENSION KNOWLEDGE BASE ---\n${knowledgeText}`
       });
       const tensionResult = await tensionModel.generateContent({
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
       aiResponse = tensionResult.response.text();
     } else {
       const geminiModel = genAI.getGenerativeModel({
-        model: "gemini-2.0-flash",
+        model: "gemini-2.5-flash",
         systemInstruction: "You are a helpful, concise AI assistant. Answer the user's question clearly and helpfully."
       });
       const geminiResult = await geminiModel.generateContent({
