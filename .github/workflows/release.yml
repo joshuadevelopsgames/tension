@@ -1,10 +1,12 @@
 name: Release Desktop App
 
-# Runs on every push to main AND can be triggered manually
 on:
   push:
     branches: [main]
   workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   release:
@@ -18,10 +20,6 @@ jobs:
             args: --target aarch64-apple-darwin   # Apple Silicon
           - platform: macos-latest
             args: --target x86_64-apple-darwin    # Intel Mac
-          - platform: windows-latest
-            args: ""
-          - platform: ubuntu-22.04
-            args: ""
 
     runs-on: ${{ matrix.platform }}
 
@@ -37,17 +35,7 @@ jobs:
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
-
-      - name: Install Linux system dependencies
-        if: matrix.platform == 'ubuntu-22.04'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libwebkit2gtk-4.1-dev \
-            libappindicator3-dev \
-            librsvg2-dev \
-            patchelf
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
 
       - name: Install npm dependencies
         run: npm ci
@@ -66,10 +54,6 @@ jobs:
           releaseBody: |
             ## What's new
             See commit history for details.
-
-            ## Install
-            Download the file for your platform below and run the installer.
-            Existing installs will update automatically.
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
