@@ -23,6 +23,21 @@ export async function POST(req: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
+    // Fetch Global Workspace Context
+    const [channelsResult, membersResult] = await Promise.all([
+      supabaseAdmin.from("channels").select("name").eq("workspace_id", workspaceId),
+      supabaseAdmin.from("workspace_members").select("users(full_name)").eq("workspace_id", workspaceId)
+    ]);
+
+    const channelNames = (channelsResult.data ?? []).map(c => c.name).join(", ");
+    const memberNames = (membersResult.data ?? []).map((m: any) => m.users?.full_name).filter(Boolean).join(", ");
+
+    const appContext = `
+--- WORKSPACE CONTEXT ---
+Channels available: ${channelNames || "none"}
+Team members: ${memberNames || "none"}
+`;
+
     // Context string for history
     const historyText = (history ?? [])
       .map((h: { role: string; content: string }) => `${h.role === "user" ? "User" : "AI"}: ${h.content}`)
@@ -33,7 +48,9 @@ export async function POST(req: NextRequest) {
     const classifyResult = await classifyModel.generateContent({
       contents: [{
         role: "user",
-        parts: [{ text: `You are an assistant for the "Tension" communication app. Given the conversation history and the new message, determine if the new message is asking about Tension, its features, how it works, or anything directly related to using Tension.
+        parts: [{ text: `You are an assistant for the "Tension" communication app. Given the workspace context, conversation history, and the new message, determine if the new message is asking about Tension, its features, how it works, or information about the specific workspace (channels, members, etc).
+
+${appContext}
 
 CONVERSATION HISTORY:
 ${historyText}
@@ -47,6 +64,7 @@ Reply with only "YES" or "NO".` }]
 
     // Step 2: Generate the appropriate response
     let aiResponse: string;
+    const aiSource = tensionRelated ? "tension" : "gemini";
 
     if (tensionRelated) {
       // Fetch knowledge base
@@ -59,7 +77,9 @@ Reply with only "YES" or "NO".` }]
 
       const tensionModel = genAI.getGenerativeModel({
         model: "gemini-2.5-flash",
-        systemInstruction: `You are Tension AI, the built-in assistant for the Tension team communication app. You ONLY answer questions using the knowledge base provided below. If the answer isn't in the knowledge base, say you don't have that information yet but the user can reach out to the Tension team. Be concise, helpful, and friendly.
+        systemInstruction: `You are Tension AI, the built-in assistant for the Tension team communication app. You answer questions about Tension using the knowledge base AND workspace context provided below. If a user asks about channels or members, use the workspace context. Be concise, helpful, and friendly.
+
+${appContext}
 
 --- TENSION KNOWLEDGE BASE ---
 ${knowledgeText}`
@@ -98,6 +118,7 @@ ${knowledgeText}`
       sender_id: TENSION_AI_USER_ID,
       dm_conversation_id: dmId,
       body: aiResponse,
+      ai_source: aiSource,
     });
 
     if (error) {
@@ -105,7 +126,7 @@ ${knowledgeText}`
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ ok: true, mode: tensionRelated ? "tension" : "gemini" });
+    return NextResponse.json({ ok: true, mode: aiSource });
   } catch (err: any) {
     console.error("AI chat error:", err);
     return NextResponse.json({ error: err.message ?? "Unknown error" }, { status: 500 });

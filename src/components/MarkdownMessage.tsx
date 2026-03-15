@@ -10,9 +10,17 @@ import remarkGfm from "remark-gfm";
  * (headings, blockquotes, code blocks, lists) are lightly styled so they don't
  * feel out-of-place inside a chat bubble. Inline code uses a monospace pill.
  */
-export function MarkdownMessage({ body }: { body: string }) {
+import { Sparkles } from "lucide-react";
+
+export function MarkdownMessage({ body, aiSource }: { body: string, aiSource?: 'tension' | 'gemini' }) {
   return (
     <div className="markdown-message text-[14px] leading-relaxed text-zinc-300">
+      {aiSource === 'gemini' && (
+        <div className="flex items-center gap-1.5 mb-2 px-2 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 w-fit">
+          <Sparkles className="w-3 h-3 text-emerald-400" />
+          <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-tight">Gemini Helper</span>
+        </div>
+      )}
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{

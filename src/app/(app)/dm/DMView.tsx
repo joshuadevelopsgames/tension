@@ -14,6 +14,7 @@ type Message = {
   sender_id: string;
   created_at: string;
   parent_id: string | null;
+  ai_source?: 'tension' | 'gemini';
 };
 
 type DMParticipant = {
@@ -136,6 +137,9 @@ export function DMView({
             if (prev.some((m) => m.body === newMsg.body && m.created_at === newMsg.created_at)) return prev;
             return [...prev, newMsg];
           });
+          if (newMsg.sender_id === TENSION_AI_USER_ID) {
+            setAiThinking(false);
+          }
         }
       )
       .subscribe();
@@ -240,8 +244,8 @@ export function DMView({
         });
       } catch (e) {
         console.error("AI chat error:", e);
-      } finally {
-        setAiThinking(false);
+        setAiThinking(false); // Only clear on error now
+      }
         // If we just created the conversation, navigate to the real ID so refreshes work
         if (dmId === "temp-ai-dm" && targetDmId !== "temp-ai-dm") {
           const params = new URLSearchParams(window.location.search);
@@ -344,7 +348,7 @@ export function DMView({
                     </span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <MarkdownMessage body={m.body} />
+                    <MarkdownMessage body={m.body} aiSource={m.ai_source} />
                   </div>
                 </div>
                 </div>
@@ -369,7 +373,7 @@ export function DMView({
                       {time}
                     </span>
                   </div>
-                  <MarkdownMessage body={m.body} />
+                  <MarkdownMessage body={m.body} aiSource={m.ai_source} />
                 </div>
               </div>
               </div>
