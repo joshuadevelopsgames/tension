@@ -223,10 +223,20 @@ export function DMView({
     if (isAIChat && !error && w.workspace_id) {
       setAiThinking(true);
       try {
+        const history = messages.slice(-5).map(m => ({
+          role: m.sender_id === currentUserId ? "user" : "assistant",
+          content: m.body
+        }));
+
         await fetch("/api/ai/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: toSend, dmId: targetDmId, workspaceId: w.workspace_id }),
+          body: JSON.stringify({ 
+            message: toSend, 
+            dmId: targetDmId, 
+            workspaceId: w.workspace_id,
+            history 
+          }),
         });
       } catch (e) {
         console.error("AI chat error:", e);
