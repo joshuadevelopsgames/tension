@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { UpdateChecker } from "@/components/UpdateChecker";
+import { ToasterProvider } from "@/components/ToasterProvider";
 import { startWindowDrag } from "@/lib/tauri";
 
 type DMItem = {
@@ -191,6 +192,7 @@ export default function AppLayout({
         {children}
       </AppShell>
       <UpdateChecker />
+      <ToasterProvider />
     </>
   );
 }

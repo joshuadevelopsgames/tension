@@ -1,64 +1,82 @@
-"use client";
-
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 import { isTauri } from "@/lib/tauri";
-import { Download, X } from "lucide-react";
+import { toast } from "sonner";
+import { Download, Sparkles } from "lucide-react";
 
 export function UpdateChecker() {
-  const [update, setUpdate] = useState<any>(null);
-  const [dismissed, setDismissed] = useState(false);
-  const [installing, setInstalling] = useState(false);
+  const updateFoundRef = useRef(false);
 
   useEffect(() => {
-    if (!isTauri()) return;
+    if (!isTauri() || updateFoundRef.current) return;
 
-    // Check for updates 4 seconds after launch so it doesn't block the UI
+    // Check for updates 4 seconds after launch
     const t = setTimeout(async () => {
       try {
         const { check } = await import("@tauri-apps/plugin-updater");
         const result = await check();
-        if (result?.available) setUpdate(result);
-      } catch {
-        // Updater not configured yet or no internet — silently ignore
+        
+        if (result?.available && !updateFoundRef.current) {
+          updateFoundRef.current = true;
+          
+          toast.custom((t) => (
+            <div className="flex flex-col gap-3 bg-zinc-900 border border-white/10 p-4 rounded-xl shadow-2xl min-w-[320px] animate-in fade-in slide-in-from-bottom-4 duration-300">
+              <div className="flex gap-3">
+                <div className="w-10 h-10 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
+                  <Download className="w-5 h-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm font-bold text-zinc-100 flex items-center gap-2">
+                    New Update Available
+                    <span className="text-[10px] bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded-full uppercase tracking-tighter">v{result.version}</span>
+                  </h3>
+                  <p className="text-[11px] text-zinc-500 mt-1 leading-relaxed">
+                    A newer version of Tension is ready. Refresh now to get the latest features!
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex gap-2 mt-1">
+                <button
+                  onClick={async () => {
+                    toast.dismiss(t);
+                    const toastId = toast.loading("Downloading update...", {
+                      description: "Tension will restart once the update is ready.",
+                    });
+                    
+                    try {
+                      await result.downloadAndInstall();
+                      toast.success("Update installed!", { id: toastId });
+                      const { relaunch } = await import("@tauri-apps/plugin-process");
+                      await relaunch();
+                    } catch (err) {
+                      toast.error("Update failed. Please try again later.", { id: toastId });
+                    }
+                  }}
+                  className="flex-1 bg-white text-zinc-950 px-3 py-2 rounded-lg text-xs font-bold hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  Update Now
+                </button>
+                <button
+                  onClick={() => toast.dismiss(t)}
+                  className="px-3 py-2 rounded-lg bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-zinc-200 text-xs font-medium transition-colors"
+                >
+                  Later
+                </button>
+              </div>
+            </div>
+          ), {
+            duration: Infinity, // Keep it visible until action or close
+            id: "app-update-found",
+          });
+        }
+      } catch (err) {
+        console.error("Update check failed:", err);
       }
     }, 4000);
 
     return () => clearTimeout(t);
   }, []);
 
-  if (!update || dismissed) return null;
-
-  return (
-    <div className="fixed bottom-5 right-5 z-[300] bg-zinc-800 border border-white/10 rounded-2xl px-4 py-3 shadow-2xl flex items-center gap-3 max-w-sm">
-      <Download className="w-4 h-4 text-indigo-400 shrink-0" />
-      <div className="flex-1 min-w-0">
-        <p className="text-xs font-semibold text-zinc-100">Update available — v{update.version}</p>
-        <p className="text-[11px] text-zinc-500 mt-0.5">Restart to install the latest version.</p>
-      </div>
-      <div className="flex items-center gap-1.5 shrink-0">
-        <button
-          onClick={async () => {
-            setInstalling(true);
-            try {
-              await update.downloadAndInstall();
-              const { relaunch } = await import("@tauri-apps/plugin-process");
-              await relaunch();
-            } catch {
-              setInstalling(false);
-            }
-          }}
-          disabled={installing}
-          className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-[11px] disabled:opacity-50 transition-colors whitespace-nowrap"
-        >
-          {installing ? "Installing…" : "Update"}
-        </button>
-        <button
-          onClick={() => setDismissed(true)}
-          className="p-1 rounded-lg hover:bg-white/10 text-zinc-500 hover:text-zinc-300 transition-colors"
-        >
-          <X className="w-3.5 h-3.5" />
-        </button>
-      </div>
-    </div>
-  );
+  return null;
 }
