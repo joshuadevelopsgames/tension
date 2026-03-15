@@ -6,9 +6,9 @@ const TENSION_AI_USER_ID = "00000000-0000-0000-0000-000000000001";
 
 export async function POST(req: NextRequest) {
   try {
-    const { message, dmId, workspaceId, history } = await req.json();
+    const { message, dmId, workspaceId, userId, history } = await req.json();
 
-    if (!message || !dmId || !workspaceId) {
+    if (!message || !dmId || !workspaceId || !userId) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
@@ -23,36 +23,60 @@ export async function POST(req: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Fetch Global Workspace Context
-    const [channelsResult, membersResult] = await Promise.all([
-      supabaseAdmin.from("channels").select("name").eq("workspace_id", workspaceId),
-      supabaseAdmin.from("workspace_members").select("users(full_name)").eq("workspace_id", workspaceId)
+    // Fetch Global Workspace Context (Static Info)
+    const [channelsResult, membersResult, userDmsResult] = await Promise.all([
+      supabaseAdmin.from("channels").select("id, name").eq("workspace_id", workspaceId),
+      supabaseAdmin.from("workspace_members").select("users(full_name)").eq("workspace_id", workspaceId),
+      supabaseAdmin.from("dm_participants").select("dm_conversation_id").eq("user_id", userId)
     ]);
 
     const channelNames = (channelsResult.data ?? []).map(c => c.name).join(", ");
     const memberNames = (membersResult.data ?? []).map((m: any) => m.users?.full_name).filter(Boolean).join(", ");
+    const channelIds = (channelsResult.data ?? []).map(c => c.id);
+    const authorizedDmIds = (userDmsResult.data ?? []).map(d => d.dm_conversation_id);
 
-    const appContext = `
+    // FETCH GLOBAL MEMORY: Recent messages across all authorized channels and DMs
+    const [channelMsgs, dmMsgs] = await Promise.all([
+      supabaseAdmin.from("messages")
+        .select("body, channel_id, sender_id, channels(name), users(full_name)")
+        .in("channel_id", channelIds)
+        .order("created_at", { ascending: false })
+        .limit(30),
+      supabaseAdmin.from("messages")
+        .select("body, dm_conversation_id, sender_id, users(full_name)")
+        .in("dm_conversation_id", authorizedDmIds)
+        .order("created_at", { ascending: false })
+        .limit(30)
+    ]);
+
+    const staticAppContext = `
 --- WORKSPACE CONTEXT ---
 Channels available: ${channelNames || "none"}
 Team members: ${memberNames || "none"}
 `;
 
-    // Context string for history
+    const recentActivity = `
+--- GLOBAL MEMORY: RECENT WORKSPACE ACTIVITY ---
+${(channelMsgs.data ?? []).reverse().map(m => `[#${(m as any).channels?.name}] ${(m as any).users?.full_name}: ${m.body}`).join("\n")}
+${(dmMsgs.data ?? []).reverse().map(m => `[DM] ${(m as any).users?.full_name}: ${m.body}`).join("\n")}
+`;
+
+    // Context string for history (current DM)
     const historyText = (history ?? [])
       .map((h: { role: string; content: string }) => `${h.role === "user" ? "User" : "AI"}: ${h.content}`)
       .join("\n");
 
-    // Step 1: Classify the message (with context)
+    // Step 1: Classify the message (with Global Memory context)
     const classifyModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     const classifyResult = await classifyModel.generateContent({
       contents: [{
         role: "user",
-        parts: [{ text: `You are an assistant for the "Tension" communication app. Given the workspace context, conversation history, and the new message, determine if the new message is asking about Tension, its features, how it works, or information about the specific workspace (channels, members, etc).
+        parts: [{ text: `You are an assistant for "Tension". Determine if the message is asking about Tension's features, workspace info, or something found in recent conversations.
 
-${appContext}
+${staticAppContext}
+${recentActivity}
 
-CONVERSATION HISTORY:
+CONVERSATION HISTORY (CURRENT):
 ${historyText}
 
 NEW MESSAGE: "${message}"
@@ -77,9 +101,10 @@ Reply with only "YES" or "NO".` }]
 
       const tensionModel = genAI.getGenerativeModel({
         model: "gemini-2.5-flash",
-        systemInstruction: `You are Tension AI, the built-in assistant for the Tension team communication app. You answer questions about Tension using the knowledge base AND workspace context provided below. If a user asks about channels or members, use the workspace context. Be concise, helpful, and friendly.
+        systemInstruction: `You are Tension AI. Answer using the knowledge base AND workspace context/memory below. If a user asks about previous discussions, refer to the activity log.
 
-${appContext}
+${staticAppContext}
+${recentActivity}
 
 --- TENSION KNOWLEDGE BASE ---
 ${knowledgeText}`
@@ -98,7 +123,9 @@ ${knowledgeText}`
     } else {
       const geminiModel = genAI.getGenerativeModel({
         model: "gemini-2.5-flash",
-        systemInstruction: "You are a helpful, concise AI assistant. Answer the user's question clearly and helpfully."
+        systemInstruction: `You are a helpful, concise AI assistant for Tension. You have access to the user's recent workspace activity for context.
+
+${recentActivity}`
       });
       const geminiResult = await geminiModel.generateContent({
         contents: [

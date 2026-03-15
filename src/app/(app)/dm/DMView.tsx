@@ -239,6 +239,7 @@ export function DMView({
             message: toSend, 
             dmId: targetDmId, 
             workspaceId: w.workspace_id,
+            userId: currentUserId,
             history 
           }),
         });
