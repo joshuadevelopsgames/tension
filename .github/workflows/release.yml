@@ -3,13 +3,72 @@ name: Release Desktop App
 on:
   push:
     branches: [main]
+    paths-ignore:
+      # Prevent infinite loops from the version-bump commit
+      - '.github/**'
   workflow_dispatch:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
+  # -----------------------------------------------------------------------
+  # Job 1: Bump the patch version across all version files and commit back.
+  # -----------------------------------------------------------------------
+  bump-version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      new_version: ${{ steps.bump.outputs.new_version }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump patch version
+        id: bump
+        run: |
+          # Read current version from tauri.conf.json (source of truth)
+          CURRENT=$(jq -r '.version' src-tauri/tauri.conf.json)
+          echo "Current version: $CURRENT"
+
+          # Split into parts and increment patch
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
+          NEW_PATCH=$((PATCH + 1))
+          NEW_VERSION="$MAJOR.$MINOR.$NEW_PATCH"
+          echo "New version: $NEW_VERSION"
+          echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+
+          # --- Update tauri.conf.json ---
+          jq --arg v "$NEW_VERSION" '.version = $v' src-tauri/tauri.conf.json > tmp.json
+          mv tmp.json src-tauri/tauri.conf.json
+
+          # --- Update package.json ---
+          jq --arg v "$NEW_VERSION" '.version = $v' package.json > tmp.json
+          mv tmp.json package.json
+
+          # --- Update Cargo.toml (first [package] version only) ---
+          sed -i "0,/^version = \".*\"/s/^version = \".*\"/version = \"$NEW_VERSION\"/" src-tauri/Cargo.toml
+
+      - name: Commit version bump
+        run: |
+          git add src-tauri/tauri.conf.json package.json src-tauri/Cargo.toml
+          git diff --staged --quiet || git commit -m "chore: bump version to v${{ steps.bump.outputs.new_version }} [skip ci]"
+          git push
+
+  # -----------------------------------------------------------------------
+  # Job 2: Build and publish the Tauri release for macOS (arm64 + x86_64).
+  # -----------------------------------------------------------------------
   release:
+    needs: bump-version
     permissions:
       contents: write
     strategy:
@@ -25,6 +84,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Pull the version-bump commit that job 1 just pushed
+          ref: main
 
       - name: Setup Node 20
         uses: actions/setup-node@v4
