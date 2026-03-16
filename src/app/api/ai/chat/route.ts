@@ -86,9 +86,10 @@ ${knowledgeText || "No knowledge base entries"}
 Answer the user's message helpfully and concisely. If they ask about Tension features, workspace info, or recent conversations, use the context above. For general questions, answer from your knowledge.`,
     });
 
+    // Gemini only accepts "user" or "model" roles — map "assistant" → "model" defensively
     const contents = [
       ...(history ?? []).map((h: { role: string; content: string }) => ({
-        role: h.role as "user" | "model",
+        role: (h.role === "user" ? "user" : "model") as "user" | "model",
         parts: [{ text: h.content }],
       })),
       { role: "user" as const, parts: [{ text: message }] },

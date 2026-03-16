@@ -228,7 +228,7 @@ export function DMView({
       setAiThinking(true);
       try {
         const history = messages.slice(-5).map(m => ({
-          role: m.sender_id === currentUserId ? "user" : "assistant",
+          role: m.sender_id === currentUserId ? "user" : "model",
           content: m.body
         }));
 
