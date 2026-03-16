@@ -251,16 +251,17 @@ export function DMView({
         }
       } catch (e) {
         console.error("AI chat error:", e);
-        setAiThinking(false); // Only clear on error now
+        setAiThinking(false);
       }
-        // If we just created the conversation, navigate to the real ID so refreshes work
-        if (dmId === "temp-ai-dm" && targetDmId !== "temp-ai-dm") {
-          const params = new URLSearchParams(window.location.search);
-          params.set("id", targetDmId);
-          window.history.replaceState(null, "", `${window.location.pathname}?${params.toString()}`);
-        }
+
+      // If we just created the conversation, navigate to the real ID so refreshes work
+      if (dmId === "temp-ai-dm" && targetDmId !== "temp-ai-dm") {
+        const params = new URLSearchParams(window.location.search);
+        params.set("id", targetDmId);
+        window.history.replaceState(null, "", `${window.location.pathname}?${params.toString()}`);
       }
     }
+  }
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
