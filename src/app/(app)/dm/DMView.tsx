@@ -245,8 +245,13 @@ export function DMView({
         });
 
         if (!res.ok) {
-          const errorData = await res.json();
-          console.error("AI API error:", errorData);
+          let errorData: unknown;
+          try {
+            errorData = await res.json();
+          } catch {
+            errorData = await res.text().catch(() => "(no body)");
+          }
+          console.error(`AI API error (HTTP ${res.status}):`, errorData);
           setAiThinking(false);
         }
       } catch (e) {
