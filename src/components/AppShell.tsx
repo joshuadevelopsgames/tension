@@ -9,7 +9,7 @@ import { WorkspaceMembersModal } from "./WorkspaceMembersModal";
 import { NotificationBell } from "./NotificationBell";
 import { startWindowDrag } from "@/lib/tauri";
 import { ProfileModal } from "./ProfileModal";
-import { Plus, Settings, Users, LogOut, Sparkles } from "lucide-react";
+import { Bookmark, Plus, Settings, Users, LogOut, Sparkles } from "lucide-react";
 import { useState, useEffect, Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -42,15 +42,23 @@ function SidebarContent({
   const [isMembersOpen, setIsMembersOpen] = useState(false);
   const [allChannels, setAllChannels] = useState(channels);
   const [dms, setDMs] = useState<DMItem[]>(initialDMs);
-  const [myProfile, setMyProfile] = useState<{ full_name: string | null; avatar_url: string | null; status: string | null } | null>(null);
+  const [myProfile, setMyProfile] = useState<{ full_name: string | null; avatar_url: string | null; status: string | null; status_emoji: string | null; status_message: string | null } | null>(null);
   const [statusPickerOpen, setStatusPickerOpen] = useState(false);
+  const [customStatusEmoji, setCustomStatusEmoji] = useState("");
+  const [customStatusMessage, setCustomStatusMessage] = useState("");
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.from("users").select("full_name, avatar_url, status").eq("id", currentUserId).single()
-      .then(({ data }) => setMyProfile(data ?? null));
+    supabase.from("users").select("full_name, avatar_url, status, status_emoji, status_message").eq("id", currentUserId).single()
+      .then(({ data }) => {
+        if (data) {
+          setMyProfile(data);
+          setCustomStatusEmoji(data.status_emoji ?? "");
+          setCustomStatusMessage(data.status_message ?? "");
+        }
+      });
   }, [currentUserId]);
 
   // Unread badge tracking
@@ -208,13 +216,22 @@ function SidebarContent({
           <span>Search</span>
           <span className="px-1.5 py-0.5 rounded bg-black/40 text-zinc-500 font-mono text-[10px]">⌘K</span>
         </button>
-        <button
-          onClick={() => setIsMembersOpen(true)}
-          className="w-full flex items-center gap-2 px-3 py-2 hover:bg-white/5 rounded-lg text-xs font-medium text-zinc-400 transition-colors"
-        >
-          <Users className="w-4 h-4" />
-          <span>Members</span>
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => setIsMembersOpen(true)}
+            className="flex-1 flex items-center gap-2 px-3 py-2 hover:bg-white/5 rounded-lg text-xs font-medium text-zinc-400 transition-colors"
+          >
+            <Users className="w-4 h-4" />
+            <span>Members</span>
+          </button>
+          <Link
+            href="/saved"
+            className="flex items-center gap-2 px-3 py-2 hover:bg-white/5 rounded-lg text-xs font-medium text-zinc-400 hover:text-zinc-200 transition-colors"
+            title="Saved messages"
+          >
+            <Bookmark className="w-4 h-4" />
+          </Link>
+        </div>
 
         {/* Profile card */}
         {(() => {
@@ -230,23 +247,64 @@ function SidebarContent({
             <div className="relative mt-1">
               {/* Status picker popover */}
               {statusPickerOpen && (
-                <div className="absolute bottom-full left-0 mb-2 w-44 bg-zinc-800 border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
-                  {STATUS_OPTIONS.map((opt) => (
+                <div className="absolute bottom-full left-0 mb-2 w-52 bg-zinc-800 border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
+                  {/* Custom status */}
+                  <div className="p-2 border-b border-white/5">
+                    <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider px-1 mb-1.5">Custom Status</p>
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        value={customStatusEmoji}
+                        onChange={(e) => setCustomStatusEmoji(e.target.value)}
+                        placeholder="😊"
+                        maxLength={4}
+                        className="w-9 bg-black/30 border border-white/10 rounded-md px-1.5 py-1.5 text-sm text-center text-zinc-200 focus:outline-none focus:border-indigo-500/50"
+                      />
+                      <input
+                        value={customStatusMessage}
+                        onChange={(e) => setCustomStatusMessage(e.target.value)}
+                        placeholder="What are you up to?"
+                        className="flex-1 bg-black/30 border border-white/10 rounded-md px-2 py-1.5 text-xs text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/50"
+                        onKeyDown={async (e) => {
+                          if (e.key === "Enter") {
+                            const supabase = createClient();
+                            await supabase.from("users").update({ status_emoji: customStatusEmoji || null, status_message: customStatusMessage || null }).eq("id", currentUserId);
+                            setMyProfile((p) => p ? { ...p, status_emoji: customStatusEmoji || null, status_message: customStatusMessage || null } : p);
+                            setStatusPickerOpen(false);
+                          }
+                        }}
+                      />
+                    </div>
                     <button
-                      key={opt.value}
                       onClick={async () => {
-                        setStatusPickerOpen(false);
                         const supabase = createClient();
-                        await supabase.from("users").update({ status: opt.value }).eq("id", currentUserId);
-                        setMyProfile((p) => p ? { ...p, status: opt.value } : p);
+                        await supabase.from("users").update({ status_emoji: customStatusEmoji || null, status_message: customStatusMessage || null }).eq("id", currentUserId);
+                        setMyProfile((p) => p ? { ...p, status_emoji: customStatusEmoji || null, status_message: customStatusMessage || null } : p);
+                        setStatusPickerOpen(false);
                       }}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium transition-colors hover:bg-white/5 ${myProfile?.status === opt.value ? "text-white" : "text-zinc-400"}`}
+                      className="mt-1.5 w-full py-1 bg-indigo-600/80 hover:bg-indigo-600 text-white text-[11px] font-medium rounded-md transition-colors"
                     >
-                      <span className={`w-2 h-2 rounded-full shrink-0 ${opt.color}`} />
-                      {opt.label}
-                      {myProfile?.status === opt.value && <span className="ml-auto text-indigo-400">✓</span>}
+                      Set Status
                     </button>
-                  ))}
+                  </div>
+                  {/* Availability */}
+                  <div className="py-1">
+                    {STATUS_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={async () => {
+                          setStatusPickerOpen(false);
+                          const supabase = createClient();
+                          await supabase.from("users").update({ status: opt.value }).eq("id", currentUserId);
+                          setMyProfile((p) => p ? { ...p, status: opt.value } : p);
+                        }}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium transition-colors hover:bg-white/5 ${myProfile?.status === opt.value ? "text-white" : "text-zinc-400"}`}
+                      >
+                        <span className={`w-2 h-2 rounded-full shrink-0 ${opt.color}`} />
+                        {opt.label}
+                        {myProfile?.status === opt.value && <span className="ml-auto text-indigo-400">✓</span>}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
 

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Paperclip, Send, X, Loader2 } from "lucide-react";
+import { Paperclip, Send, Sparkles, X, Loader2 } from "lucide-react";
 
 type PendingFile = {
   file: File;
@@ -27,18 +27,21 @@ export function MessageComposer({
   placeholder,
   workspaceId,
   currentUserId,
+  channelId,
   onSend,
   onTyping,
 }: {
   placeholder: string;
   workspaceId: string;
   currentUserId: string;
+  channelId?: string;
   onSend: (body: string, files: UploadedFile[]) => Promise<void>;
   onTyping?: () => void;
 }) {
   const [draft, setDraft] = useState("");
   const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
   const [sending, setSending] = useState(false);
+  const [draftLoading, setDraftLoading] = useState(false);
 
   // @mention autocomplete state
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
@@ -188,6 +191,25 @@ export function MessageComposer({
     };
   }
 
+  async function suggestDraft() {
+    if (!channelId || draftLoading) return;
+    setDraftLoading(true);
+    try {
+      const res = await fetch("/api/ai/draft", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ channelId, userId: currentUserId }),
+      });
+      const { draft: suggested } = await res.json();
+      if (suggested) {
+        setDraft(suggested);
+        setTimeout(() => textareaRef.current?.focus(), 0);
+      }
+    } finally {
+      setDraftLoading(false);
+    }
+  }
+
   async function handleSubmit() {
     const body = draft.trim();
     if (!body && pendingFiles.length === 0) return;
@@ -273,6 +295,17 @@ export function MessageComposer({
         >
           <Paperclip className="w-[16px] h-[16px]" />
         </button>
+        {channelId && (
+          <button
+            type="button"
+            onClick={suggestDraft}
+            disabled={draftLoading}
+            className="p-2 mb-0.5 rounded-lg text-zinc-500 hover:text-indigo-400 hover:bg-indigo-500/10 disabled:opacity-30 transition-colors shrink-0"
+            title="Suggest a reply with AI"
+          >
+            {draftLoading ? <Loader2 className="w-[16px] h-[16px] animate-spin" /> : <Sparkles className="w-[16px] h-[16px]" />}
+          </button>
+        )}
         <input ref={fileInputRef} type="file" multiple className="hidden" onChange={handleFileSelect}
           accept="image/*,.pdf,.txt,.md,.csv,.doc,.docx,.xls,.xlsx,.zip" />
         <textarea

@@ -32,11 +32,12 @@ function ChannelPageContent() {
       const { data: msgs } = await supabase
         .from("messages")
         .select(`
-          id, 
-          body, 
-          sender_id, 
-          created_at, 
+          id,
+          body,
+          sender_id,
+          created_at,
           parent_id,
+          urgent,
           users:sender_id (
             full_name,
             avatar_url
