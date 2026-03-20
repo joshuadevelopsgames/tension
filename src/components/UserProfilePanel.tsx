@@ -141,19 +141,21 @@ export function UserProfilePanel({
         <div className="flex-1 overflow-y-auto">
           {/* Avatar + name hero */}
           <div className="pb-5 border-b border-[var(--t-border)]">
-            {/* Full-width avatar */}
-            <div className="relative w-full aspect-square bg-[var(--t-raised)] overflow-hidden">
-              {profile?.avatar_url ? (
-                <img src={profile.avatar_url} alt={name} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <span className="text-6xl font-bold text-zinc-400">{initials}</span>
-                </div>
-              )}
-              {/* Status dot over avatar */}
-              {profile?.status && (
-                <span className={`absolute bottom-3 right-3 w-4 h-4 rounded-full border-2 border-[var(--t-raised)] ${STATUS_COLORS[profile.status] ?? "bg-zinc-500"}`} />
-              )}
+            {/* Large rounded avatar */}
+            <div className="px-5 pt-6">
+              <div className="relative w-full aspect-square rounded-2xl overflow-hidden" style={{ background: "var(--t-raised)" }}>
+                {profile?.avatar_url ? (
+                  <img src={profile.avatar_url} alt={name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <span className="text-6xl font-bold text-zinc-400">{initials}</span>
+                  </div>
+                )}
+                {/* Status dot */}
+                {profile?.status && (
+                  <span className={`absolute bottom-3 right-3 w-4 h-4 rounded-full border-2 border-[var(--t-raised)] ${STATUS_COLORS[profile.status] ?? "bg-zinc-500"}`} />
+                )}
+              </div>
             </div>
 
             <div className="px-5 pt-4">
