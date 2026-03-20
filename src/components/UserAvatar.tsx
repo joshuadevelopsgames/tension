@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/client";
 import { MessageSquare, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createClient as createBrowserClient } from "@/lib/supabase/client";
+import { STATUS_COLORS } from "@/lib/constants";
+import { displayName as formatDisplayName } from "@/lib/utils";
 
 type UserProfile = {
   id: string;
@@ -15,13 +17,6 @@ type UserProfile = {
   status_emoji: string | null;
   status_message: string | null;
   timezone: string | null;
-};
-
-const STATUS_COLORS: Record<string, string> = {
-  active: "bg-emerald-500",
-  away: "bg-amber-500",
-  busy: "bg-red-500",
-  offline: "bg-zinc-500",
 };
 
 export function UserAvatar({
@@ -147,7 +142,7 @@ export function UserAvatar({
             ) : (
               <>
                 <div className="flex items-center gap-2 mb-0.5">
-                  <p className="text-sm font-semibold text-zinc-100">{profile?.full_name || displayName || `User ${userId.slice(0, 4)}`}</p>
+                  <p className="text-sm font-semibold text-zinc-100">{formatDisplayName(profile ?? { id: userId, full_name: displayName ?? null })}</p>
                   {profile?.status && (
                     <span className={`w-2 h-2 rounded-full shrink-0 ${STATUS_COLORS[profile.status] ?? "bg-zinc-500"}`} title={profile.status} />
                   )}

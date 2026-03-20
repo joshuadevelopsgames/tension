@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Slack for Marketing",
-  description: "Team chat for marketing teams with AI advantages",
+  title: "Tension",
+  description: "Team messaging, reimagined.",
 };
 
 export default function RootLayout({

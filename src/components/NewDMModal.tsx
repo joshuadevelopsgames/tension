@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Loader2, X, MessageSquare, Search } from "lucide-react";
+import { Loader2, MessageSquare, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { ModalPortal } from "@/components/ModalPortal";
+import { Modal } from "@/components/Modal";
+import { displayName } from "@/lib/utils";
 
 type WorkspaceMember = {
   user_id: string;
@@ -60,7 +61,7 @@ export function NewDMModal({
 
     const supabase = createClient();
 
-    // Check if a DM already exists between these two users in this workspace
+    // Find or create DM conversation
     const { data: myConvs } = await supabase
       .from("dm_participants")
       .select("dm_conversation_id")
@@ -78,7 +79,6 @@ export function NewDMModal({
         .single();
 
       if (existing?.dm_conversation_id) {
-        // DM already exists — just navigate to it
         setCreating(null);
         onClose();
         router.push(`/dm?id=${existing.dm_conversation_id}`);
@@ -86,7 +86,6 @@ export function NewDMModal({
       }
     }
 
-    // Create a new DM conversation
     const { data: conv, error } = await supabase
       .from("dm_conversations")
       .insert({ workspace_id: workspaceId })
@@ -98,99 +97,101 @@ export function NewDMModal({
       return;
     }
 
-    // Add both participants
     await supabase.from("dm_participants").insert([
       { dm_conversation_id: conv.id, user_id: currentUserId },
       { dm_conversation_id: conv.id, user_id: member.user_id },
     ]);
 
-    const displayName = member.full_name || `User ${member.user_id.slice(0, 4)}`;
-    onDMCreated({ id: conv.id, otherUserId: member.user_id, otherUserName: displayName });
+    const name = displayName(member);
+    onDMCreated({ id: conv.id, otherUserId: member.user_id, otherUserName: name });
     setCreating(null);
     onClose();
     router.push(`/dm?id=${conv.id}`);
   }
 
   const filtered = members.filter((m) =>
-    (m.full_name ?? "").toLowerCase().includes(query.toLowerCase())
+    displayName(m).toLowerCase().includes(query.toLowerCase())
   );
 
   if (!isOpen) return null;
 
   return (
-    <ModalPortal>
-    <div
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-      onClick={onClose}
-    >
-      <div
-        className="bg-[var(--t-raised)] border border-[var(--t-border)] rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between p-4 border-b border-white/5">
-          <h2 className="text-sm font-semibold text-white">New Direct Message</h2>
-          <button onClick={onClose} className="p-1 hover:bg-white/10 rounded-md text-zinc-400 hover:text-white transition-colors">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-
-        <div className="p-3 border-b border-white/5">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500 pointer-events-none" />
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              autoFocus
-              placeholder="Search teammates..."
-              className="w-full bg-black/20 border border-white/10 rounded-lg pl-8 pr-3 py-2 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/50 transition-colors"
-            />
-          </div>
-        </div>
-
-        <div className="overflow-y-auto max-h-72">
-          {loading ? (
-            <div className="p-8 flex justify-center">
-              <Loader2 className="w-5 h-5 animate-spin text-zinc-500" />
-            </div>
-          ) : filtered.length === 0 ? (
-            <div className="p-6 text-center text-sm text-zinc-600">
-              {query ? "No members match your search." : "No other members in this workspace."}
-            </div>
-          ) : (
-            <ul className="p-2 space-y-0.5">
-              {filtered.map((m) => {
-                const name = m.full_name || `User ${m.user_id.slice(0, 4)}`;
-                const initials = name.slice(0, 2).toUpperCase();
-                const isCreating = creating === m.user_id;
-                return (
-                  <li key={m.user_id}>
-                    <button
-                      onClick={() => handleSelect(m)}
-                      disabled={!!creating}
-                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 text-left transition-colors disabled:opacity-60"
-                    >
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center text-xs font-semibold text-indigo-300 shrink-0 overflow-hidden">
-                        {m.avatar_url ? (
-                          <img src={m.avatar_url} alt={name} className="w-full h-full object-cover" />
-                        ) : (
-                          initials
-                        )}
-                      </div>
-                      <span className="text-sm font-medium text-zinc-200 truncate">{name}</span>
-                      {isCreating && <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-500 ml-auto shrink-0" />}
-                      {!isCreating && (
-                        <MessageSquare className="w-3.5 h-3.5 text-zinc-600 ml-auto shrink-0 opacity-0 group-hover:opacity-100" />
-                      )}
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
+    <Modal title="New Direct Message" onClose={onClose}>
+      {/* Search */}
+      <div className="p-3" style={{ borderBottom: "1px solid var(--t-border)" }}>
+        <div className="relative">
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none"
+            style={{ color: "var(--t-fg-3)" }}
+          />
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            autoFocus
+            placeholder="Search teammates…"
+            className="w-full rounded-lg pl-8 pr-3 py-2 text-sm focus:outline-none transition-colors"
+            style={{
+              background: "var(--t-surface)",
+              border: "1px solid var(--t-border)",
+              color: "var(--t-fg)",
+            }}
+          />
         </div>
       </div>
-    </div>
-    </ModalPortal>
+
+      {/* Member list */}
+      <div className="overflow-y-auto max-h-72">
+        {loading ? (
+          <div className="p-8 flex justify-center">
+            <Loader2 className="w-5 h-5 animate-spin" style={{ color: "var(--t-fg-3)" }} />
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="p-6 text-center text-sm" style={{ color: "var(--t-fg-3)" }}>
+            {query ? "No members match your search." : "No other members in this workspace."}
+          </div>
+        ) : (
+          <ul className="p-2 space-y-0.5">
+            {filtered.map((m) => {
+              const name = displayName(m);
+              const initials = name.slice(0, 2).toUpperCase();
+              const isCreating = creating === m.user_id;
+              return (
+                <li key={m.user_id}>
+                  <button
+                    onClick={() => handleSelect(m)}
+                    disabled={!!creating}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors disabled:opacity-60 hover:bg-white/5"
+                  >
+                    <div
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 overflow-hidden"
+                      style={{
+                        background: "color-mix(in srgb, var(--t-accent) 15%, transparent)",
+                        color: "var(--t-accent)",
+                        border: "1px solid var(--t-border)",
+                      }}
+                    >
+                      {m.avatar_url ? (
+                        <img src={m.avatar_url} alt={name} className="w-full h-full object-cover" />
+                      ) : (
+                        initials
+                      )}
+                    </div>
+                    <span className="text-sm font-medium truncate" style={{ color: "var(--t-fg)" }}>
+                      {name}
+                    </span>
+                    {isCreating ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin ml-auto shrink-0" style={{ color: "var(--t-fg-3)" }} />
+                    ) : (
+                      <MessageSquare className="w-3.5 h-3.5 ml-auto shrink-0 opacity-0 group-hover:opacity-100" style={{ color: "var(--t-fg-3)" }} />
+                    )}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+    </Modal>
   );
 }

@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Loader2, X, Hash, Lock } from "lucide-react";
+import { Loader2, Hash, Lock } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { ModalPortal } from "@/components/ModalPortal";
+import { Modal } from "@/components/Modal";
 
 function toSlug(name: string): string {
   return name
@@ -15,6 +15,14 @@ function toSlug(name: string): string {
     .replace(/-+/g, "-")
     .slice(0, 80);
 }
+
+const inputClass =
+  "w-full rounded-lg px-3 py-2 text-sm focus:outline-none transition-colors";
+const inputStyle = {
+  background: "var(--t-surface)",
+  border: "1px solid var(--t-border)",
+  color: "var(--t-fg)",
+} as React.CSSProperties;
 
 export function CreateChannelModal({
   isOpen,
@@ -49,7 +57,6 @@ export function CreateChannelModal({
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setSaving(false); return; }
 
-    // Insert channel
     const { data: channel, error: channelError } = await supabase
       .from("channels")
       .insert({
@@ -70,7 +77,6 @@ export function CreateChannelModal({
       return;
     }
 
-    // Add creator as first member
     await supabase.from("channel_members").insert({
       channel_id: channel.id,
       user_id: user.id,
@@ -95,155 +101,149 @@ export function CreateChannelModal({
   if (!isOpen) return null;
 
   return (
-    <ModalPortal>
-    <div
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-      onClick={handleClose}
-    >
-      <div
-        className="bg-[var(--t-raised)] border border-[var(--t-border)] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-white/5">
-          <h2 className="text-sm font-semibold text-white">Create a Channel</h2>
-          <button
-            onClick={handleClose}
-            className="p-1 hover:bg-white/10 rounded-md text-zinc-400 hover:text-white transition-colors"
-          >
-            <X className="w-4 h-4" />
-          </button>
+    <Modal title="Create a Channel" onClose={handleClose} maxWidth="max-w-md">
+      <form onSubmit={handleSubmit} className="p-5 space-y-4">
+        {/* Name */}
+        <div className="space-y-1.5">
+          <label className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--t-fg-2)" }}>
+            Channel Name <span className="text-red-400">*</span>
+          </label>
+          <div className="relative">
+            <Hash
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none"
+              style={{ color: "var(--t-fg-3)" }}
+            />
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              autoFocus
+              placeholder="e.g. nike-campaign-q3"
+              className={`${inputClass} pl-8`}
+              style={inputStyle}
+            />
+          </div>
+          {slug && name && (
+            <p className="text-[11px] pl-1" style={{ color: "var(--t-fg-3)" }}>
+              Slug: <span className="font-mono" style={{ color: "var(--t-fg-2)" }}>{slug}</span>
+            </p>
+          )}
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
-          {/* Name */}
-          <div className="space-y-1.5">
-            <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">
-              Channel Name <span className="text-red-400">*</span>
-            </label>
-            <div className="relative">
-              <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500 pointer-events-none" />
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                autoFocus
-                placeholder="e.g. nike-campaign-q3"
-                className="w-full bg-black/20 border border-white/10 rounded-lg pl-8 pr-3 py-2 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/50 transition-colors"
-              />
-            </div>
-            {slug && name && (
-              <p className="text-[11px] text-zinc-600 pl-1">
-                Slug: <span className="text-zinc-500 font-mono">{slug}</span>
-              </p>
-            )}
-          </div>
+        {/* Topic */}
+        <div className="space-y-1.5">
+          <label className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--t-fg-2)" }}>
+            Topic <span className="font-normal normal-case" style={{ color: "var(--t-fg-3)" }}>(optional)</span>
+          </label>
+          <input
+            type="text"
+            value={topic}
+            onChange={(e) => setTopic(e.target.value)}
+            placeholder="What's this channel about?"
+            className={inputClass}
+            style={inputStyle}
+          />
+        </div>
 
-          {/* Topic */}
+        {/* Client + Campaign tags */}
+        <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">
-              Topic <span className="text-zinc-600 font-normal normal-case">(optional)</span>
+            <label className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--t-fg-2)" }}>
+              Client Tag
             </label>
             <input
               type="text"
-              value={topic}
-              onChange={(e) => setTopic(e.target.value)}
-              placeholder="What's this channel about?"
-              className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/50 transition-colors"
+              value={clientTag}
+              onChange={(e) => setClientTag(e.target.value)}
+              placeholder="e.g. Nike"
+              className={inputClass}
+              style={inputStyle}
             />
           </div>
-
-          {/* Client + Campaign tags side by side */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">
-                Client Tag
-              </label>
-              <input
-                type="text"
-                value={clientTag}
-                onChange={(e) => setClientTag(e.target.value)}
-                placeholder="e.g. Nike"
-                className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/50 transition-colors"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">
-                Campaign Tag
-              </label>
-              <input
-                type="text"
-                value={campaignTag}
-                onChange={(e) => setCampaignTag(e.target.value)}
-                placeholder="e.g. Q3-Launch"
-                className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/50 transition-colors"
-              />
-            </div>
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--t-fg-2)" }}>
+              Campaign Tag
+            </label>
+            <input
+              type="text"
+              value={campaignTag}
+              onChange={(e) => setCampaignTag(e.target.value)}
+              placeholder="e.g. Q3-Launch"
+              className={inputClass}
+              style={inputStyle}
+            />
           </div>
+        </div>
 
-          {/* Private toggle */}
+        {/* Private toggle */}
+        <button
+          type="button"
+          onClick={() => setIsPrivate((p) => !p)}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border text-left transition-colors"
+          style={{
+            borderColor: isPrivate
+              ? "color-mix(in srgb, var(--t-accent) 40%, transparent)"
+              : "var(--t-border)",
+            background: isPrivate
+              ? "color-mix(in srgb, var(--t-accent) 10%, transparent)"
+              : "transparent",
+            color: isPrivate ? "var(--t-accent)" : "var(--t-fg-2)",
+          }}
+        >
+          <Lock className="w-4 h-4 shrink-0" style={{ color: isPrivate ? "var(--t-accent)" : "var(--t-fg-3)" }} />
+          <div>
+            <p className="text-xs font-medium">
+              {isPrivate ? "Private channel" : "Public channel"}
+            </p>
+            <p className="text-[11px] mt-0.5" style={{ color: "var(--t-fg-3)" }}>
+              {isPrivate
+                ? "Only invited members can see and join"
+                : "Anyone in the workspace can see and join"}
+            </p>
+          </div>
+          <div
+            className="ml-auto rounded-full transition-colors shrink-0 relative"
+            style={{
+              height: 18,
+              width: 32,
+              background: isPrivate ? "var(--t-accent)" : "var(--t-border)",
+            }}
+          >
+            <span
+              className="absolute top-0.5 w-3.5 h-3.5 bg-white rounded-full shadow transition-all"
+              style={{ left: isPrivate ? 14 : 2 }}
+            />
+          </div>
+        </button>
+
+        {error && (
+          <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+            {error}
+          </p>
+        )}
+
+        {/* Actions */}
+        <div className="pt-2 flex justify-end gap-3" style={{ borderTop: "1px solid var(--t-border)" }}>
           <button
             type="button"
-            onClick={() => setIsPrivate((p) => !p)}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-colors text-left ${
-              isPrivate
-                ? "border-indigo-500/40 bg-indigo-500/10 text-indigo-300"
-                : "border-white/10 bg-black/10 text-zinc-400 hover:text-zinc-200 hover:border-white/20"
-            }`}
+            onClick={handleClose}
+            className="px-4 py-2 text-sm font-medium transition-colors"
+            style={{ color: "var(--t-fg-2)" }}
           >
-            <Lock className={`w-4 h-4 shrink-0 ${isPrivate ? "text-indigo-400" : "text-zinc-600"}`} />
-            <div>
-              <p className="text-xs font-medium">
-                {isPrivate ? "Private channel" : "Public channel"}
-              </p>
-              <p className="text-[11px] text-zinc-500 mt-0.5">
-                {isPrivate
-                  ? "Only invited members can see and join"
-                  : "Anyone in the workspace can see and join"}
-              </p>
-            </div>
-            <div
-              className={`ml-auto w-8 h-4.5 rounded-full transition-colors shrink-0 relative ${
-                isPrivate ? "bg-indigo-600" : "bg-zinc-700"
-              }`}
-              style={{ height: "18px", width: "32px" }}
-            >
-              <span
-                className={`absolute top-0.5 w-3.5 h-3.5 bg-white rounded-full shadow transition-all ${
-                  isPrivate ? "left-[14px]" : "left-0.5"
-                }`}
-              />
-            </div>
+            Cancel
           </button>
-
-          {error && (
-            <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
-              {error}
-            </p>
-          )}
-
-          {/* Actions */}
-          <div className="pt-2 flex justify-end gap-3 border-t border-white/5">
-            <button
-              type="button"
-              onClick={handleClose}
-              className="px-4 py-2 text-sm font-medium text-zinc-400 hover:text-white transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={saving || !name.trim()}
-              className="px-4 py-2 text-sm font-medium bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors disabled:opacity-40 flex items-center gap-2"
-            >
-              {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-              Create Channel
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-    </ModalPortal>
+          <button
+            type="submit"
+            disabled={saving || !name.trim()}
+            className="px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-40 flex items-center gap-2 text-white"
+            style={{ background: "var(--t-accent)" }}
+          >
+            {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+            Create Channel
+          </button>
+        </div>
+      </form>
+    </Modal>
   );
 }

@@ -6,13 +6,7 @@ import { Camera, Loader2, Moon, Sun, X } from "lucide-react";
 import { ModalPortal } from "@/components/ModalPortal";
 import { useTheme } from "@/components/ThemeProvider";
 import { THEMES, type ThemeId } from "@/lib/themes";
-
-const STATUS_EMOJIS = [
-  "😊","😄","😂","😅","🤔","🤩","😎","🥳","😴","🤒","😤","🥹",
-  "🔥","✅","🚀","💯","👀","💡","⚡","🎯","📌","⚠️","🏆","✨",
-  "👍","👎","❤️","🎉","💪","🫡","🙏","💀","🤝","👋","🫶","🎊",
-  "☕","🍕","🎸","⚽","🌴","🏖️","🌙","☀️","🌧️","❄️","🌈","🎁",
-];
+import { STATUS_EMOJIS } from "@/lib/constants";
 
 function ThemeSelector() {
   const { theme, setTheme, mode, toggleMode } = useTheme();

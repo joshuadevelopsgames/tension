@@ -23,6 +23,40 @@ type SavedItem = {
   };
 };
 
+function SavedSkeleton() {
+  return (
+    <div className="flex flex-col h-full overflow-hidden animate-pulse">
+      <header
+        className="px-6 py-4 pt-10 flex items-center gap-3 shrink-0"
+        style={{ borderBottom: "1px solid var(--t-border)" }}
+      >
+        <div className="w-4 h-4 rounded" style={{ background: "var(--t-raised)" }} />
+        <div className="h-4 w-36 rounded" style={{ background: "var(--t-raised)" }} />
+      </header>
+      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3 max-w-2xl">
+        {[...Array(4)].map((_, i) => (
+          <div
+            key={i}
+            className="rounded-xl p-4"
+            style={{ background: "var(--t-raised)", opacity: 0.4 + i * 0.1 }}
+          >
+            <div className="flex gap-3">
+              <div className="w-5 h-5 rounded-full shrink-0" style={{ background: "var(--t-border)" }} />
+              <div className="flex-1 space-y-2">
+                <div className="h-3 w-24 rounded" style={{ background: "var(--t-border)" }} />
+                <div
+                  className="h-3 rounded"
+                  style={{ width: `${55 + (i * 13) % 35}%`, background: "var(--t-border)" }}
+                />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function SavedPage() {
   const [items, setItems] = useState<SavedItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,24 +114,34 @@ export default function SavedPage() {
     setItems((prev) => prev.filter((i) => i.id !== savedId));
   }
 
+  if (loading) return <SavedSkeleton />;
+
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <header className="px-6 py-4 pt-10 flex items-center gap-3 shrink-0 border-b border-white/5 select-none">
-        <Bookmark className="w-4 h-4 text-zinc-500" />
-        <h2 className="font-semibold text-zinc-100 text-sm">Saved Messages</h2>
-        {!loading && items.length > 0 && (
-          <span className="text-[11px] text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded-full">{items.length}</span>
+      <header
+        className="px-6 py-4 pt-10 flex items-center gap-3 shrink-0 select-none"
+        style={{ borderBottom: "1px solid var(--t-border)" }}
+      >
+        <Bookmark className="w-4 h-4" style={{ color: "var(--t-fg-3)" }} />
+        <h2 className="font-semibold text-sm" style={{ color: "var(--t-fg)" }}>Saved Messages</h2>
+        {items.length > 0 && (
+          <span
+            className="text-[11px] px-1.5 py-0.5 rounded-full"
+            style={{ color: "var(--t-fg-3)", background: "var(--t-raised)" }}
+          >
+            {items.length}
+          </span>
         )}
       </header>
 
       <div className="flex-1 overflow-y-auto px-6 py-4">
-        {loading ? (
-          <div className="flex items-center justify-center py-16 text-zinc-600 text-sm">Loading…</div>
-        ) : items.length === 0 ? (
+        {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
-            <Bookmark className="w-10 h-10 text-zinc-700 mb-3" />
-            <p className="text-zinc-500 text-sm font-medium">No saved messages yet</p>
-            <p className="text-zinc-600 text-xs mt-1">Hover over a message and click the bookmark icon to save it.</p>
+            <Bookmark className="w-10 h-10 mb-3" style={{ color: "var(--t-border)" }} />
+            <p className="text-sm font-medium" style={{ color: "var(--t-fg-2)" }}>No saved messages yet</p>
+            <p className="text-xs mt-1" style={{ color: "var(--t-fg-3)" }}>
+              Hover over a message and click the bookmark icon to save it.
+            </p>
           </div>
         ) : (
           <div className="space-y-3 max-w-2xl">
@@ -109,7 +153,14 @@ export default function SavedPage() {
                 : "#";
 
               return (
-                <div key={item.id} className="group bg-white/[0.03] border border-white/5 rounded-xl p-4 hover:border-white/10 transition-colors">
+                <div
+                  key={item.id}
+                  className="group rounded-xl p-4 transition-colors"
+                  style={{
+                    background: "color-mix(in srgb, var(--t-raised) 60%, transparent)",
+                    border: "1px solid var(--t-border)",
+                  }}
+                >
                   <div className="flex items-start gap-3">
                     <UserAvatar
                       userId={item.message.sender_id}
@@ -119,22 +170,30 @@ export default function SavedPage() {
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[13px] font-semibold text-zinc-200">
+                        <span className="text-[13px] font-semibold" style={{ color: "var(--t-fg)" }}>
                           {item.message.sender_name || "Unknown"}
                         </span>
                         {item.message.channel_name && (
-                          <Link href={href} className="flex items-center gap-0.5 text-[11px] text-zinc-500 hover:text-indigo-400 transition-colors">
+                          <Link
+                            href={href}
+                            className="flex items-center gap-0.5 text-[11px] transition-colors hover:underline"
+                            style={{ color: "var(--t-fg-3)" }}
+                          >
                             <Hash className="w-3 h-3" />
                             {item.message.channel_name}
                           </Link>
                         )}
                         {item.message.dm_conversation_id && !item.message.channel_id && (
-                          <Link href={href} className="flex items-center gap-0.5 text-[11px] text-zinc-500 hover:text-indigo-400 transition-colors">
+                          <Link
+                            href={href}
+                            className="flex items-center gap-0.5 text-[11px] transition-colors hover:underline"
+                            style={{ color: "var(--t-fg-3)" }}
+                          >
                             <MessageSquare className="w-3 h-3" />
                             DM
                           </Link>
                         )}
-                        <span className="text-[10px] text-zinc-600 ml-auto">
+                        <span className="text-[10px] ml-auto" style={{ color: "var(--t-fg-3)" }}>
                           {new Date(item.message.created_at).toLocaleDateString()}
                         </span>
                       </div>
@@ -144,13 +203,15 @@ export default function SavedPage() {
                   <div className="flex items-center justify-end mt-2 gap-2">
                     <Link
                       href={href}
-                      className="text-[11px] text-zinc-600 hover:text-indigo-400 transition-colors"
+                      className="text-[11px] transition-colors hover:underline"
+                      style={{ color: "var(--t-fg-3)" }}
                     >
                       Jump to message →
                     </Link>
                     <button
                       onClick={() => unsave(item.id)}
-                      className="text-[11px] text-zinc-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                      className="text-[11px] transition-colors opacity-0 group-hover:opacity-100 hover:text-red-400"
+                      style={{ color: "var(--t-fg-3)" }}
                     >
                       Remove
                     </button>

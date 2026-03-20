@@ -16,6 +16,7 @@ import { useState, useEffect, useRef, Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { HuddleProvider } from "@/context/HuddleContext";
 import { HuddleWidget } from "./HuddleWidget";
+import { STATUS_COLORS, STATUS_OPTIONS } from "@/lib/constants";
 
 function ModeToggle() {
   const { mode, toggleMode } = useTheme();
@@ -340,14 +341,6 @@ function SidebarContent({
 
         {/* Profile card */}
         {(() => {
-          const STATUS_OPTIONS = [
-            { value: "active",  label: "Active",  color: "bg-emerald-500" },
-            { value: "away",    label: "Away",    color: "bg-amber-500" },
-            { value: "busy",    label: "Busy",    color: "bg-red-500" },
-            { value: "offline", label: "Offline", color: "bg-zinc-500" },
-          ] as const;
-          const statusColors: Record<string, string> = { active: "bg-emerald-500", away: "bg-amber-500", busy: "bg-red-500", offline: "bg-zinc-500" };
-
           return (
             <div className="relative mt-1">
               {/* Status picker popover */}
@@ -458,7 +451,7 @@ function SidebarContent({
                         (myProfile?.full_name ?? currentUserId).slice(0, 2).toUpperCase()
                       )}
                     </div>
-                    <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[var(--t-sidebar)] ${statusColors[myProfile?.status ?? "offline"] ?? "bg-zinc-500"}`} />
+                    <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[var(--t-sidebar)] ${STATUS_COLORS[myProfile?.status ?? "offline"] ?? "bg-zinc-500"}`} />
                   </div>
                   <div className="flex-1 min-w-0 text-left">
                     <p className="text-xs font-semibold text-zinc-200 truncate leading-tight">
