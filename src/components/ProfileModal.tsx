@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Camera, Loader2, X } from "lucide-react";
+import { Camera, Loader2, Moon, Sun, X } from "lucide-react";
 import { ModalPortal } from "@/components/ModalPortal";
 import { useTheme } from "@/components/ThemeProvider";
 import { THEMES, type ThemeId } from "@/lib/themes";
@@ -15,10 +15,24 @@ const STATUS_EMOJIS = [
 ];
 
 function ThemeSelector() {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, mode, toggleMode } = useTheme();
   return (
-    <div className="space-y-2">
-      <label className="text-[11px] font-semibold text-zinc-500 uppercase tracking-widest">Theme</label>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <label className="text-[11px] font-semibold text-zinc-500 uppercase tracking-widest">Theme</label>
+        {/* Light / dark toggle */}
+        <button
+          type="button"
+          onClick={toggleMode}
+          className="flex items-center gap-1.5 px-2 py-1 rounded-lg border border-[var(--t-border)] bg-[var(--t-surface)]/60 hover:bg-[var(--t-surface)] transition-colors text-[10px] font-medium text-zinc-400"
+          title={mode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+        >
+          {mode === "dark"
+            ? <><Sun className="w-3 h-3" /><span>Light</span></>
+            : <><Moon className="w-3 h-3" /><span>Dark</span></>
+          }
+        </button>
+      </div>
       <div className="grid grid-cols-3 gap-2">
         {(Object.entries(THEMES) as [ThemeId, typeof THEMES[ThemeId]][]).map(([id, t]) => (
           <button
@@ -27,14 +41,14 @@ function ThemeSelector() {
             onClick={() => setTheme(id)}
             className={`relative flex flex-col items-start gap-2 p-3 rounded-xl border transition-all ${
               theme === id
-                ? "border-[var(--t-accent)] bg-white/[0.06]"
-                : "border-white/10 bg-black/20 hover:border-white/20"
+                ? "border-[var(--t-accent)] bg-[var(--t-accent)]/10"
+                : "border-[var(--t-border)] bg-[var(--t-surface)]/50 hover:border-[var(--t-accent)]/40"
             }`}
           >
             {/* Colour swatches */}
             <div className="flex gap-1">
               {t.swatches.map((c, i) => (
-                <span key={i} className="w-4 h-4 rounded-full border border-white/10" style={{ background: c }} />
+                <span key={i} className="w-4 h-4 rounded-full border border-[var(--t-border)]" style={{ background: c }} />
               ))}
             </div>
             <div className="text-left">

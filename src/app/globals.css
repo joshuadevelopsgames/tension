@@ -75,6 +75,112 @@
   letter-spacing: -0.01em;
 }
 
+/* ── Light Mode Theme Tokens ───────────────────────────────────────────── */
+
+[data-theme="obsidian"][data-mode="light"] {
+  --t-surface:  #f7f6f5;
+  --t-sidebar:  #eeece9;
+  --t-header:   #f2f0ee;
+  --t-raised:   #ffffff;
+  --t-card:     rgba(0,0,0,0.025);
+  --t-accent:   #0d9488;
+  --t-border:   rgba(0,0,0,0.08);
+}
+
+[data-theme="submerged"][data-mode="light"] {
+  --t-surface:  #eef4fb;
+  --t-sidebar:  #ddeaf7;
+  --t-header:   #e6f0f9;
+  --t-raised:   #ffffff;
+  --t-card:     rgba(0,0,0,0.025);
+  --t-accent:   #059669;
+  --t-border:   rgba(0,40,80,0.09);
+}
+
+[data-theme="void"][data-mode="light"] {
+  --t-surface:  #f5f3ff;
+  --t-sidebar:  #ede9fe;
+  --t-header:   #f0eeff;
+  --t-raised:   #ffffff;
+  --t-card:     rgba(139,92,246,0.04);
+  --t-accent:   #7c3aed;
+  --t-border:   rgba(109,40,217,0.10);
+}
+
+[data-theme="gilded"][data-mode="light"] {
+  --t-surface:  #fdf8ef;
+  --t-sidebar:  #f5ede0;
+  --t-header:   #faf3e8;
+  --t-raised:   #ffffff;
+  --t-card:     rgba(245,158,11,0.05);
+  --t-accent:   #b45309;
+  --t-border:   rgba(180,83,9,0.14);
+}
+
+[data-theme="terminal"][data-mode="light"] {
+  --t-surface:  #f4fdf6;
+  --t-sidebar:  #e8f8ec;
+  --t-header:   #eefaf2;
+  --t-raised:   #ffffff;
+  --t-card:     rgba(34,197,94,0.05);
+  --t-accent:   #16a34a;
+  --t-border:   rgba(22,163,74,0.14);
+}
+
+[data-theme="crimson"][data-mode="light"] {
+  --t-surface:  #fff5f5;
+  --t-sidebar:  #ffe8e8;
+  --t-header:   #ffeded;
+  --t-raised:   #ffffff;
+  --t-card:     rgba(220,38,38,0.04);
+  --t-accent:   #b91c1c;
+  --t-border:   rgba(185,28,28,0.12);
+}
+
+/* ── Light mode: universal text/bg/border overrides ──────────────────────
+   These override hardcoded Tailwind zinc/white classes.
+   Non-layered CSS beats Tailwind's @layer utilities — no !important needed.
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* Text: light zinc shades → dark equivalents */
+[data-mode="light"] .text-white,
+[data-mode="light"] .text-zinc-100,
+[data-mode="light"] .text-zinc-200 { color: #18181b; }
+
+[data-mode="light"] .text-zinc-300,
+[data-mode="light"] .text-zinc-400 { color: #52525b; }
+
+[data-mode="light"] .text-zinc-500 { color: #71717a; }
+
+[data-mode="light"] .text-zinc-600,
+[data-mode="light"] .text-zinc-700 { color: #a1a1aa; }
+
+/* Hover text */
+[data-mode="light"] .hover\:text-white:hover,
+[data-mode="light"] .hover\:text-zinc-100:hover,
+[data-mode="light"] .hover\:text-zinc-200:hover { color: #09090b; }
+
+[data-mode="light"] .hover\:text-zinc-300:hover { color: #27272a; }
+
+/* Background: white-opacity hovers → black-opacity on light surfaces */
+[data-mode="light"] .bg-white\/5                { background-color: rgba(0,0,0,0.04); }
+[data-mode="light"] .bg-white\/\[0\.02\]        { background-color: rgba(0,0,0,0.02); }
+[data-mode="light"] .bg-white\/\[0\.03\]        { background-color: rgba(0,0,0,0.03); }
+[data-mode="light"] .bg-white\/\[0\.04\]        { background-color: rgba(0,0,0,0.04); }
+[data-mode="light"] .bg-white\/\[0\.06\]        { background-color: rgba(0,0,0,0.05); }
+[data-mode="light"] .bg-white\/\[0\.08\]        { background-color: rgba(0,0,0,0.06); }
+[data-mode="light"] .hover\:bg-white\/5:hover   { background-color: rgba(0,0,0,0.05); }
+[data-mode="light"] .hover\:bg-white\/10:hover  { background-color: rgba(0,0,0,0.08); }
+
+/* Border: white-opacity → black-opacity */
+[data-mode="light"] .border-white\/5            { border-color: rgba(0,0,0,0.06); }
+[data-mode="light"] .border-white\/10           { border-color: rgba(0,0,0,0.10); }
+[data-mode="light"] .border-white\/\[0\.08\]    { border-color: rgba(0,0,0,0.08); }
+[data-mode="light"] .hover\:border-white\/20:hover { border-color: rgba(0,0,0,0.20); }
+
+/* Placeholder text */
+[data-mode="light"] .placeholder\:text-zinc-600::placeholder { color: #a1a1aa; }
+
 /* ── Sonner toast theming ──────────────────────────────────────────────── */
 [data-sonner-toast] {
   background: var(--t-raised, #1c1c1c) !important;

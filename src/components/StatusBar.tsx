@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Sun, Moon } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 import { THEMES } from "@/lib/themes";
 import { createClient } from "@/lib/supabase/client";
@@ -34,7 +35,7 @@ function useRealtimeStatus() {
 }
 
 export function StatusBar({ workspaceName, channelName }: { workspaceName?: string; channelName?: string }) {
-  const { theme } = useTheme();
+  const { theme, mode, toggleMode } = useTheme();
   const time = useClock();
   const realtimeStatus = useRealtimeStatus();
 
@@ -81,6 +82,19 @@ export function StatusBar({ workspaceName, channelName }: { workspaceName?: stri
         </span>
         <span className="text-zinc-700">|</span>
         <span>{time}</span>
+        <span className="text-zinc-700">|</span>
+        {/* Light/dark toggle */}
+        <button
+          onClick={toggleMode}
+          title={mode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          style={{ lineHeight: 1, padding: "1px 2px", borderRadius: "3px", cursor: "pointer" }}
+          className="hover:bg-white/10 transition-colors"
+        >
+          {mode === "dark"
+            ? <Sun  style={{ width: 10, height: 10, display: "block" }} />
+            : <Moon style={{ width: 10, height: 10, display: "block" }} />
+          }
+        </button>
       </div>
     </div>
   );
