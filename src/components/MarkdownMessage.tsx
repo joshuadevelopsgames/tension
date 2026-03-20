@@ -2,6 +2,7 @@
 
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { LinkPreview } from "@/components/LinkPreview";
 
 /**
  * Renders message body text as inline-friendly Markdown.
@@ -11,6 +12,9 @@ import remarkGfm from "remark-gfm";
  * feel out-of-place inside a chat bubble. Inline code uses a monospace pill.
  */
 import { Sparkles } from "lucide-react";
+
+const URL_REGEX = /https?:\/\/[^\s"'<>)]+/g;
+function hasUrl(text: string) { return URL_REGEX.test(text); }
 
 export function MarkdownMessage({ body, aiSource }: { body: string, aiSource?: 'tension' | 'gemini' }) {
   return (
@@ -137,6 +141,7 @@ export function MarkdownMessage({ body, aiSource }: { body: string, aiSource?: '
       >
         {body}
       </ReactMarkdown>
+      {hasUrl(body) && <LinkPreview body={body} />}
     </div>
   );
 }

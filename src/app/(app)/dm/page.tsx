@@ -65,7 +65,8 @@ function DMPageContent() {
     }
 
     load();
-  }, [id, router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   if (!id || loading || !currentUserId) {
     return (

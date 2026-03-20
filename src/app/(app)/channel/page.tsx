@@ -56,7 +56,8 @@ function ChannelPageContent() {
     }
 
     loadChannel();
-  }, [id, router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   if (!id || loading || !channel) {
     return <div className="flex-1 flex items-center justify-center bg-zinc-950 text-[#a1a1aa]">Loading...</div>;

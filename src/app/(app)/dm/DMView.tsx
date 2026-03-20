@@ -5,8 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { ChevronDown, Send, Sparkles } from "lucide-react";
 import { MarkdownMessage } from "@/components/MarkdownMessage";
 import { DateSeparator, isDifferentDay } from "@/components/DateSeparator";
-
-const TENSION_AI_USER_ID = "00000000-0000-0000-0000-000000000001";
+import { TENSION_AI_USER_ID } from "@/lib/types";
 
 type Message = {
   id: string;
@@ -47,6 +46,8 @@ export function DMView({
   const typingTimeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const currentUserRef = useRef<string>(currentUserId);
   const [otherTimezone, setOtherTimezone] = useState<string | null>(null);
+  const [smartReplies, setSmartReplies] = useState<string[]>([]);
+  const [smartRepliesLoading, setSmartRepliesLoading] = useState(false);
 
   const myTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -104,7 +105,8 @@ export function DMView({
       typingTimeoutsRef.current.forEach(clearTimeout);
       typingTimeoutsRef.current.clear();
     };
-  }, [dmId, supabase]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dmId]);
 
   function handleTyping() {
     if (!typingChannelRef.current) return;
@@ -144,13 +146,32 @@ export function DMView({
       )
       .subscribe();
     return () => { supabase.removeChannel(sub); };
-  }, [dmId, supabase]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dmId]);
+
+  async function fetchSmartReplies() {
+    if (isAIChat || smartRepliesLoading || messages.length === 0) return;
+    setSmartRepliesLoading(true);
+    setSmartReplies([]);
+    try {
+      const res = await fetch("/api/ai/suggest-replies", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dmId, userId: currentUserId }),
+      });
+      const { suggestions } = await res.json();
+      if (Array.isArray(suggestions)) setSmartReplies(suggestions);
+    } finally {
+      setSmartRepliesLoading(false);
+    }
+  }
 
   async function send() {
     const toSend = draft.trim();
     if (!toSend || toSend === lastSentDraftRef.current) return;
 
     setDraft("");
+    setSmartReplies([]);
     lastSentDraftRef.current = toSend;
 
     const realId = crypto.randomUUID();
@@ -450,10 +471,37 @@ export function DMView({
       })()}
 
       <div className="p-4 pt-2 shrink-0">
+        {/* Smart reply suggestions */}
+        {!isAIChat && smartReplies.length > 0 && (
+          <div className="flex gap-1.5 flex-wrap mb-2">
+            {smartReplies.map((s, i) => (
+              <button
+                key={i}
+                onClick={() => { setDraft(s); setSmartReplies([]); }}
+                className="px-2.5 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-[11px] font-medium hover:bg-indigo-500/20 transition-colors"
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
         <form
           onSubmit={(e) => { e.preventDefault(); send(); }}
           className="flex items-end gap-2 bg-black/40 backdrop-blur-md border border-white/10 rounded-xl p-1 shadow-inner focus-within:border-white/20 focus-within:bg-black/60 transition-colors"
         >
+          {!isAIChat && (
+            <button
+              type="button"
+              onClick={fetchSmartReplies}
+              disabled={smartRepliesLoading || messages.length === 0}
+              className="p-2 mb-0.5 ml-0.5 rounded-lg text-zinc-500 hover:text-indigo-400 hover:bg-indigo-500/10 disabled:opacity-30 transition-colors shrink-0"
+              title="Suggest replies"
+            >
+              {smartRepliesLoading
+                ? <Sparkles className="w-[16px] h-[16px] animate-pulse" />
+                : <Sparkles className="w-[16px] h-[16px]" />}
+            </button>
+          )}
           <input
             type="text"
             value={draft}

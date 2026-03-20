@@ -10,7 +10,7 @@ import { NotificationBell } from "./NotificationBell";
 import { startWindowDrag } from "@/lib/tauri";
 import { ProfileModal } from "./ProfileModal";
 import { Bookmark, Plus, Settings, Users, LogOut, Sparkles } from "lucide-react";
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 type DMItem = {
@@ -46,11 +46,21 @@ function SidebarContent({
   const [statusPickerOpen, setStatusPickerOpen] = useState(false);
   const [customStatusEmoji, setCustomStatusEmoji] = useState("");
   const [customStatusMessage, setCustomStatusMessage] = useState("");
+  const [statusDuration, setStatusDuration] = useState<number | null>(null); // minutes, null = forever
+  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     const supabase = createClient();
+
+    // Auto-clear expired status
+    const expiresAt = localStorage.getItem(`status_expires:${currentUserId}`);
+    if (expiresAt && Date.now() > Number(expiresAt)) {
+      localStorage.removeItem(`status_expires:${currentUserId}`);
+      supabase.from("users").update({ status_emoji: null, status_message: null }).eq("id", currentUserId).then(() => {});
+    }
+
     supabase.from("users").select("full_name, avatar_url, status, status_emoji, status_message").eq("id", currentUserId).single()
       .then(({ data }) => {
         if (data) {
@@ -63,6 +73,12 @@ function SidebarContent({
 
   // Unread badge tracking
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+  // Ambient activity orbs — channels with very recent messages
+  const [recentlyActive, setRecentlyActive] = useState<Set<string>>(new Set());
+  const orbTimeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  // Presence — online user IDs
+  const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
+
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const activeChannelId = pathname === "/channel" ? searchParams.get("id") : null;
@@ -87,18 +103,55 @@ function SidebarContent({
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "messages", filter: `workspace_id=eq.${workspaceId}` },
         (payload) => {
-          const msg = payload.new as any;
-          if (msg.sender_id === currentUserId) return; // own messages don't create badges
+          const msg = payload.new as { sender_id: string; channel_id: string | null; dm_conversation_id: string | null };
           const id: string | null = msg.channel_id || msg.dm_conversation_id || null;
           if (!id) return;
-          // Skip if currently viewing this channel/DM
+
+          // Ambient orb: light up the channel for 5 minutes regardless of who sent it
+          const existing = orbTimeoutsRef.current.get(id);
+          if (existing) clearTimeout(existing);
+          setRecentlyActive((prev) => new Set(prev).add(id));
+          const t = setTimeout(() => {
+            setRecentlyActive((prev) => { const n = new Set(prev); n.delete(id); return n; });
+            orbTimeoutsRef.current.delete(id);
+          }, 5 * 60 * 1000);
+          orbTimeoutsRef.current.set(id, t);
+
+          // Unread badge only for others' messages in inactive channels
+          if (msg.sender_id === currentUserId) return;
           if (id === activeChannelId || id === activeDmId) return;
           setUnreadCounts((prev) => ({ ...prev, [id]: (prev[id] ?? 0) + 1 }));
         }
       )
       .subscribe();
-    return () => { supabase.removeChannel(sub); };
+    return () => {
+      supabase.removeChannel(sub);
+      orbTimeoutsRef.current.forEach(clearTimeout);
+    };
   }, [workspaceId, currentUserId, activeChannelId, activeDmId]);
+
+  // Supabase Realtime presence — track who's online in this workspace
+  useEffect(() => {
+    if (!currentUserId) return;
+    const supabase = createClient();
+    const ch = supabase.channel(`presence:${workspaceId}`, { config: { presence: { key: currentUserId } } });
+    ch.on("presence", { event: "sync" }, () => {
+      const state = ch.presenceState<{ userId: string }>();
+      setOnlineUsers(new Set(Object.keys(state)));
+    })
+    .on("presence", { event: "join" }, ({ key }) => {
+      setOnlineUsers((prev) => new Set(prev).add(key));
+    })
+    .on("presence", { event: "leave" }, ({ key }) => {
+      setOnlineUsers((prev) => { const n = new Set(prev); n.delete(key); return n; });
+    })
+    .subscribe(async (status) => {
+      if (status === "SUBSCRIBED") {
+        await ch.track({ userId: currentUserId, online_at: new Date().toISOString() });
+      }
+    });
+    return () => { supabase.removeChannel(ch); };
+  }, [workspaceId, currentUserId]);
 
   function handleChannelCreated(channel: { id: string; name: string; slug: string }) {
     setAllChannels((prev) => [...prev, channel].sort((a, b) => a.name.localeCompare(b.name)));
@@ -129,6 +182,7 @@ function SidebarContent({
           <ul className="space-y-0.5">
             {allChannels.map((ch) => {
               const count = unreadCounts[ch.id] ?? 0;
+              const active = recentlyActive.has(ch.id);
               return (
                 <li key={ch.id}>
                   <Link
@@ -137,6 +191,9 @@ function SidebarContent({
                   >
                     <span className="text-zinc-600 font-normal">#</span>
                     <span className="flex-1 truncate">{ch.name}</span>
+                    {active && count === 0 && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-orb shrink-0" title="Active" />
+                    )}
                     {count > 0 && (
                       <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-indigo-500 text-[10px] font-bold text-white flex items-center justify-center leading-none">
                         {count > 99 ? "99+" : count}
@@ -174,26 +231,36 @@ function SidebarContent({
                 const isAI = dm.otherUserId === "00000000-0000-0000-0000-000000000001";
                 const initials = dm.otherUserName.slice(0, 2).toUpperCase();
                 const count = unreadCounts[dm.id] ?? 0;
+                const active = recentlyActive.has(dm.id);
+                const isOnline = !isAI && onlineUsers.has(dm.otherUserId);
                 return (
                   <li key={dm.id}>
                     <Link
                       href={`/dm?id=${dm.id}`}
                       className={`flex items-center gap-2 px-2 py-1.5 rounded-md text-sm font-medium hover:bg-white/10 transition-colors ${count > 0 ? "text-zinc-100" : "text-zinc-400 hover:text-zinc-100"}`}
                     >
-                      <div className={`w-5 h-5 rounded-full border border-white/10 flex items-center justify-center text-[9px] font-semibold shrink-0 overflow-hidden ${
-                        isAI
-                          ? "bg-gradient-to-br from-indigo-600 to-violet-600 text-white"
-                          : "bg-gradient-to-br from-indigo-500/20 to-purple-500/20 text-indigo-400"
-                      }`}>
-                        {isAI ? (
-                          <Sparkles className="w-2.5 h-2.5" />
-                        ) : dm.otherUserAvatar ? (
-                          <img src={dm.otherUserAvatar} alt={dm.otherUserName} className="w-full h-full object-cover" />
-                        ) : (
-                          initials
+                      <div className="relative shrink-0">
+                        <div className={`w-5 h-5 rounded-full border border-white/10 flex items-center justify-center text-[9px] font-semibold overflow-hidden ${
+                          isAI
+                            ? "bg-gradient-to-br from-indigo-600 to-violet-600 text-white"
+                            : "bg-gradient-to-br from-indigo-500/20 to-purple-500/20 text-indigo-400"
+                        }`}>
+                          {isAI ? (
+                            <Sparkles className="w-2.5 h-2.5" />
+                          ) : dm.otherUserAvatar ? (
+                            <img src={dm.otherUserAvatar} alt={dm.otherUserName} className="w-full h-full object-cover" />
+                          ) : (
+                            initials
+                          )}
+                        </div>
+                        {isOnline && (
+                          <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 border border-zinc-900 animate-presence" />
                         )}
                       </div>
                       <span className="flex-1 truncate">{dm.otherUserName}</span>
+                      {active && count === 0 && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-orb shrink-0" title="Active" />
+                      )}
                       {count > 0 && (
                         <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-indigo-500 text-[10px] font-bold text-white flex items-center justify-center leading-none">
                           {count > 99 ? "99+" : count}
@@ -252,33 +319,63 @@ function SidebarContent({
                   <div className="p-2 border-b border-white/5">
                     <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider px-1 mb-1.5">Custom Status</p>
                     <div className="flex items-center gap-1.5">
-                      <input
-                        value={customStatusEmoji}
-                        onChange={(e) => setCustomStatusEmoji(e.target.value)}
-                        placeholder="😊"
-                        maxLength={4}
-                        className="w-9 bg-black/30 border border-white/10 rounded-md px-1.5 py-1.5 text-sm text-center text-zinc-200 focus:outline-none focus:border-indigo-500/50"
-                      />
+                      {/* Emoji picker button */}
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => setEmojiPickerOpen((o) => !o)}
+                          className={`w-9 h-9 flex items-center justify-center rounded-md border text-lg transition-colors ${emojiPickerOpen ? "border-indigo-500/50 bg-indigo-500/10" : "border-white/10 bg-black/30 hover:border-white/20"}`}
+                        >
+                          {customStatusEmoji || "😊"}
+                        </button>
+                        {emojiPickerOpen && (
+                          <div className="absolute bottom-full left-0 mb-1 bg-zinc-800 border border-white/10 rounded-xl p-2 shadow-2xl grid grid-cols-6 gap-0.5 z-[60] w-44">
+                            {["😊","😄","😂","😅","🤔","🤩","😎","🥳","😴","🤒","😤","🥹",
+                              "🔥","✅","🚀","💯","👀","💡","⚡","🎯","📌","⚠️","🏆","✨",
+                              "👍","👎","❤️","🎉","💪","🫡","🙏","💀","🤝","👋","🫶","🎊",
+                              "☕","🍕","🎸","⚽","🌴","🏖️","🌙","☀️","🌧️","❄️","🌈","🎁"].map((e) => (
+                              <button
+                                key={e}
+                                type="button"
+                                onClick={() => { setCustomStatusEmoji(e); setEmojiPickerOpen(false); }}
+                                className="w-7 h-7 flex items-center justify-center text-base rounded hover:bg-white/10 transition-colors"
+                              >
+                                {e}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                       <input
                         value={customStatusMessage}
                         onChange={(e) => setCustomStatusMessage(e.target.value)}
                         placeholder="What are you up to?"
                         className="flex-1 bg-black/30 border border-white/10 rounded-md px-2 py-1.5 text-xs text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/50"
-                        onKeyDown={async (e) => {
-                          if (e.key === "Enter") {
-                            const supabase = createClient();
-                            await supabase.from("users").update({ status_emoji: customStatusEmoji || null, status_message: customStatusMessage || null }).eq("id", currentUserId);
-                            setMyProfile((p) => p ? { ...p, status_emoji: customStatusEmoji || null, status_message: customStatusMessage || null } : p);
-                            setStatusPickerOpen(false);
-                          }
-                        }}
                       />
+                    </div>
+                    {/* Duration picker */}
+                    <div className="flex gap-1 mt-1.5 flex-wrap">
+                      {([null, 30, 60, 240] as (number | null)[]).map((mins) => (
+                        <button
+                          key={mins ?? "forever"}
+                          type="button"
+                          onClick={() => setStatusDuration(mins)}
+                          className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors ${statusDuration === mins ? "bg-indigo-600 text-white" : "bg-white/5 text-zinc-500 hover:bg-white/10 hover:text-zinc-300"}`}
+                        >
+                          {mins === null ? "Forever" : mins < 60 ? `${mins}m` : `${mins / 60}h`}
+                        </button>
+                      ))}
                     </div>
                     <button
                       onClick={async () => {
                         const supabase = createClient();
                         await supabase.from("users").update({ status_emoji: customStatusEmoji || null, status_message: customStatusMessage || null }).eq("id", currentUserId);
                         setMyProfile((p) => p ? { ...p, status_emoji: customStatusEmoji || null, status_message: customStatusMessage || null } : p);
+                        if (statusDuration) {
+                          localStorage.setItem(`status_expires:${currentUserId}`, String(Date.now() + statusDuration * 60 * 1000));
+                        } else {
+                          localStorage.removeItem(`status_expires:${currentUserId}`);
+                        }
                         setStatusPickerOpen(false);
                       }}
                       className="mt-1.5 w-full py-1 bg-indigo-600/80 hover:bg-indigo-600 text-white text-[11px] font-medium rounded-md transition-colors"

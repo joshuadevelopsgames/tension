@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { startWindowDrag } from "@/lib/tauri";
 
 export default function Home() {
   const router = useRouter();
+  const [timedOut, setTimedOut] = useState(false);
 
   useEffect(() => {
     async function redirectCorrectly() {
@@ -51,8 +52,8 @@ export default function Home() {
       if (targetChannelId) {
         router.replace(`/channel?id=${targetChannelId}`);
       } else {
-        // Fallback if something failed critically with the trigger
         console.error("Workspace auto-provisioning timed out.");
+        setTimedOut(true);
       }
     }
     redirectCorrectly();
@@ -64,6 +65,18 @@ export default function Home() {
         onPointerDown={startWindowDrag}
         className="absolute top-0 left-0 right-0 h-10 w-full z-10 select-none cursor-grab active:cursor-grabbing"
       />
+      {timedOut && (
+        <div className="text-center px-6">
+          <p className="text-zinc-300 text-sm font-medium mb-1">Something went wrong</p>
+          <p className="text-zinc-600 text-xs mb-4">Workspace setup timed out. Try refreshing.</p>
+          <button
+            onClick={() => { setTimedOut(false); router.refresh(); }}
+            className="text-xs px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-md text-zinc-400 hover:text-zinc-200 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      )}
     </div>
   );
 }

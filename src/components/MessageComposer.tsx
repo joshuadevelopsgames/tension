@@ -38,7 +38,11 @@ export function MessageComposer({
   onSend: (body: string, files: UploadedFile[]) => Promise<void>;
   onTyping?: () => void;
 }) {
-  const [draft, setDraft] = useState("");
+  const draftKey = channelId ? `draft:${channelId}` : null;
+  const [draft, setDraft] = useState(() => {
+    if (typeof window === "undefined" || !channelId) return "";
+    return localStorage.getItem(`draft:${channelId}`) ?? "";
+  });
   const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
   const [sending, setSending] = useState(false);
   const [draftLoading, setDraftLoading] = useState(false);
@@ -48,6 +52,30 @@ export function MessageComposer({
   const [mentionStart, setMentionStart] = useState<number>(0);
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
   const [mentionIndex, setMentionIndex] = useState(0);
+
+  // /slash command state
+  const [slashQuery, setSlashQuery] = useState<string | null>(null);
+  const [slashIndex, setSlashIndex] = useState(0);
+
+  const SLASH_COMMANDS = [
+    { cmd: "/shrug",   desc: "Append ¯\\_(ツ)_/¯",        action: () => appendText(" ¯\\_(ツ)_/¯") },
+    { cmd: "/flip",    desc: "Append (╯°□°）╯︵ ┻━┻",     action: () => appendText(" (╯°□°）╯︵ ┻━┻") },
+    { cmd: "/unflip",  desc: "Append ┬─┬ノ( º _ ºノ)",    action: () => appendText(" ┬─┬ノ( º _ ºノ)") },
+    { cmd: "/lenny",   desc: "Append ( ͡° ͜ʖ ͡°)",        action: () => appendText(" ( ͡° ͜ʖ ͡°)") },
+    { cmd: "/tableflip", desc: "Send (╯°□°）╯︵ ┻━┻",     action: () => sendSlash("(╯°□°）╯︵ ┻━┻") },
+    { cmd: "/shout",   desc: "UPPERCASE your message",      action: () => setDraft((d) => d.replace(/^\/shout\s*/i, "").toUpperCase()) },
+  ] as const;
+
+  function appendText(text: string) {
+    setDraft((d) => d.replace(/^\/\w*\s*/, "") + text);
+    setSlashQuery(null);
+  }
+
+  function sendSlash(text: string) {
+    setDraft(text);
+    setSlashQuery(null);
+    setTimeout(() => handleSubmit(), 0);
+  }
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -83,8 +111,22 @@ export function MessageComposer({
   function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     const val = e.target.value;
     setDraft(val);
+    if (draftKey) {
+      if (val) localStorage.setItem(draftKey, val);
+      else localStorage.removeItem(draftKey);
+    }
     lastSentRef.current = null;
     onTyping?.();
+
+    // Detect /slash commands (only when message starts with /)
+    if (val.startsWith("/")) {
+      const query = val.slice(1).toLowerCase();
+      setSlashQuery(query);
+      setSlashIndex(0);
+      setMentionQuery(null);
+      return;
+    }
+    setSlashQuery(null);
 
     // Find the last '@' before cursor
     const cursor = e.target.selectionStart ?? val.length;
@@ -108,6 +150,10 @@ export function MessageComposer({
     ? members.filter((m) => m.full_name.toLowerCase().includes(mentionQuery))
     : [];
 
+  const filteredSlash = slashQuery !== null
+    ? SLASH_COMMANDS.filter((c) => c.cmd.slice(1).startsWith(slashQuery))
+    : [];
+
   function insertMention(member: WorkspaceMember) {
     const before = draft.slice(0, mentionStart);
     const after = draft.slice(textareaRef.current?.selectionStart ?? draft.length);
@@ -122,6 +168,13 @@ export function MessageComposer({
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    // Navigate/select /slash commands
+    if (slashQuery !== null && filteredSlash.length > 0) {
+      if (e.key === "ArrowDown") { e.preventDefault(); setSlashIndex((i) => (i + 1) % filteredSlash.length); return; }
+      if (e.key === "ArrowUp") { e.preventDefault(); setSlashIndex((i) => (i - 1 + filteredSlash.length) % filteredSlash.length); return; }
+      if (e.key === "Enter" || e.key === "Tab") { e.preventDefault(); filteredSlash[slashIndex].action(); return; }
+      if (e.key === "Escape") { setSlashQuery(null); return; }
+    }
     // Navigate/select @mention
     if (mentionQuery !== null && filteredMembers.length > 0) {
       if (e.key === "ArrowDown") { e.preventDefault(); setMentionIndex((i) => (i + 1) % filteredMembers.length); return; }
@@ -218,6 +271,7 @@ export function MessageComposer({
     setSending(true);
     lastSentRef.current = body;
     setDraft("");
+    if (draftKey) localStorage.removeItem(draftKey);
     setMentionQuery(null);
     const filesToUpload = [...pendingFiles];
     setPendingFiles([]);
@@ -258,6 +312,25 @@ export function MessageComposer({
                 <X className="w-2.5 h-2.5" />
               </button>
             </div>
+          ))}
+        </div>
+      )}
+
+      {/* /slash commands dropdown */}
+      {slashQuery !== null && filteredSlash.length > 0 && (
+        <div className="mb-1 bg-zinc-800 border border-white/10 rounded-xl shadow-xl overflow-hidden">
+          {filteredSlash.map((c, i) => (
+            <button
+              key={c.cmd}
+              type="button"
+              onMouseDown={(e) => { e.preventDefault(); c.action(); }}
+              className={`w-full flex items-center gap-3 px-3 py-2 text-left transition-colors ${
+                i === slashIndex ? "bg-indigo-500/20 text-zinc-100" : "text-zinc-300 hover:bg-white/5"
+              }`}
+            >
+              <span className="text-sm font-mono font-semibold text-indigo-400 w-24 shrink-0">{c.cmd}</span>
+              <span className="text-xs text-zinc-500">{c.desc}</span>
+            </button>
           ))}
         </div>
       )}

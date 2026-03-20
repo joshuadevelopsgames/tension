@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { toast } from "sonner";
 import {
   Bookmark, BookmarkCheck, Check, ChevronDown, Copy, FileText, Hash,
   Loader2, MessageSquare, Pencil, Pin, PinOff, Send, Settings, Smile,
@@ -14,6 +15,7 @@ import { UserAvatar } from "@/components/UserAvatar";
 import { MarkdownMessage } from "@/components/MarkdownMessage";
 import { DateSeparator, isDifferentDay } from "@/components/DateSeparator";
 import { ChannelSettingsModal } from "@/components/ChannelSettingsModal";
+import { Confetti } from "@/components/Confetti";
 
 type Message = {
   id: string;
@@ -58,6 +60,7 @@ function MessageRow({
   isPinned,
   onSave,
   isSaved,
+  isNew,
 }: {
   m: Message;
   prev: Message | null;
@@ -71,6 +74,7 @@ function MessageRow({
   isPinned?: boolean;
   onSave?: (id: string) => void;
   isSaved?: boolean;
+  isNew?: boolean;
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editDraft, setEditDraft] = useState(m.body);
@@ -256,10 +260,11 @@ function MessageRow({
   );
 
   const urgentBorder = m.urgent ? "border-l-2 border-amber-500/60 pl-2" : "";
+  const newAnim = isNew ? "animate-msg-in" : "";
 
   if (isGrouped) {
     return (
-      <div className={`flex gap-4 group mt-1 hover:bg-white/[0.02] -mx-4 px-4 py-0.5 rounded-sm relative ${urgentBorder}`}>
+      <div className={`flex gap-4 group mt-1 hover:bg-white/[0.02] -mx-4 px-4 py-0.5 rounded-sm relative ${urgentBorder} ${newAnim}`}>
         <div className="w-8 shrink-0 text-right">
           <span className="text-[10px] font-medium text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap block mt-1">
             {time}
@@ -272,7 +277,7 @@ function MessageRow({
   }
 
   return (
-    <div className={`flex gap-4 group mt-4 hover:bg-white/[0.02] -mx-4 px-4 py-1 rounded-sm relative ${urgentBorder}`}>
+    <div className={`flex gap-4 group mt-4 hover:bg-white/[0.02] -mx-4 px-4 py-1 rounded-sm relative ${urgentBorder} ${newAnim}`}>
       <UserAvatar
         userId={m.sender_id}
         displayName={m.users?.full_name || undefined}
@@ -342,7 +347,8 @@ function ThreadPanel({
     }
     loadReplies();
     setDraft("");
-  }, [parentMessage.id, supabase]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [parentMessage.id]);
 
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [replies]);
 
@@ -367,7 +373,8 @@ function ThreadPanel({
       })
       .subscribe();
     return () => { supabase.removeChannel(sub); };
-  }, [parentMessage.id, supabase]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [parentMessage.id]);
 
   async function handleEdit(id: string, newBody: string) {
     const { data } = await supabase.from("messages").update({ body: newBody }).eq("id", id).select().single();
@@ -651,6 +658,14 @@ export function ChannelView({
   // Saved
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
 
+  // New message animation tracking
+  const [newMessageIds, setNewMessageIds] = useState<Set<string>>(new Set());
+
+  // Confetti on first-ever message in channel
+  const wasEmptyRef = useRef(initialMessages.length === 0);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [showFirstMessageBanner, setShowFirstMessageBanner] = useState(false);
+
   const [typingUsers, setTypingUsers] = useState<Map<string, string>>(new Map());
   const [showScrollBtn, setShowScrollBtn] = useState(false);
 
@@ -672,7 +687,8 @@ export function ChannelView({
           .then(({ data: profile }) => { if (profile) cachedProfileRef.current = profile; });
       }
     });
-  }, [supabase]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Load pins and saved IDs once currentUserId is known
   useEffect(() => {
@@ -703,11 +719,21 @@ export function ChannelView({
       .then(({ data }) => {
         if (data) setSavedIds(new Set((data as any[]).map((s) => s.message_id)));
       });
-  }, [currentUserId, channel.id, supabase]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUserId, channel.id]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [topLevelMessages.length]);
+    if (wasEmptyRef.current && topLevelMessages.length === 1) {
+      setShowConfetti(true);
+      setShowFirstMessageBanner(true);
+      wasEmptyRef.current = false;
+    }
+    // Dismiss the banner once a second message arrives
+    if (showFirstMessageBanner && topLevelMessages.length >= 2) {
+      setShowFirstMessageBanner(false);
+    }
+  }, [topLevelMessages.length, showFirstMessageBanner]);
 
   useEffect(() => {
     const sub = supabase
@@ -716,11 +742,17 @@ export function ChannelView({
         const newMsg = payload.new as Message;
         supabase.from("users").select("full_name, avatar_url").eq("id", newMsg.sender_id).single().then(({ data }) => {
           if (data) newMsg.users = data;
+          let isNew = false;
           setAllMessages((prev) => {
             if (prev.some((m) => m.id === newMsg.id)) return prev.map((m) => m.id === newMsg.id ? { ...m, ...newMsg } : m);
             if (prev.some((m) => m.body === newMsg.body && m.created_at === newMsg.created_at)) return prev;
+            isNew = true;
             return [...prev, newMsg];
           });
+          if (isNew) {
+            setNewMessageIds((s) => { const n = new Set(s); n.add(newMsg.id); return n; });
+            setTimeout(() => setNewMessageIds((s) => { const n = new Set(s); n.delete(newMsg.id); return n; }), 600);
+          }
         });
         if (newMsg.parent_id) {
           setReplyCounts((prev) => ({ ...prev, [newMsg.parent_id!]: (prev[newMsg.parent_id!] ?? 0) + 1 }));
@@ -734,7 +766,8 @@ export function ChannelView({
       })
       .subscribe();
     return () => { supabase.removeChannel(sub); };
-  }, [channel.id, supabase]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [channel.id]);
 
   useEffect(() => {
     const ch = supabase.channel(`typing:channel:${channel.id}`);
@@ -757,7 +790,8 @@ export function ChannelView({
       typingTimeoutsRef.current.forEach(clearTimeout);
       typingTimeoutsRef.current.clear();
     };
-  }, [channel.id, currentUserId, supabase]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [channel.id, currentUserId]);
 
   function handleTyping() {
     if (!currentUserId || !typingChannelRef.current) return;
@@ -864,8 +898,15 @@ export function ChannelView({
       .insert({ id: realId, workspace_id: workspaceId, sender_id: currentUserId, channel_id: channel.id, body: body.trim() || " " })
       .select().single();
 
-    if (error) { setAllMessages((prev) => prev.filter((m) => m.id !== realId)); return; }
-    setAllMessages((prev) => prev.map((m) => m.id === realId ? data as Message : m));
+    if (error) {
+      console.error("Message insert failed:", error);
+      toast.error("Failed to send message");
+      setAllMessages((prev) => prev.filter((m) => m.id !== realId));
+      return;
+    }
+    if (data) {
+      setAllMessages((prev) => prev.map((m) => m.id === realId ? { ...m, ...data } as Message : m));
+    }
 
     if (files.length > 0) {
       await supabase.from("message_files").insert(
@@ -919,6 +960,7 @@ export function ChannelView({
 
   return (
     <>
+      <Confetti trigger={showConfetti} />
       <div className="flex h-full overflow-hidden">
         <div className="flex flex-col flex-1 overflow-hidden">
           {/* Channel header */}
@@ -1010,6 +1052,15 @@ export function ChannelView({
             </div>
           )}
 
+          {showFirstMessageBanner && (
+            <div className="px-6 py-2 bg-indigo-500/10 border-b border-indigo-500/20 flex items-center gap-2 animate-msg-in">
+              <span className="text-lg">🎉</span>
+              <p className="text-xs font-medium text-indigo-300">
+                You just sent the first message in <span className="font-semibold">#{channel.name}</span> — the channel is officially alive!
+              </p>
+            </div>
+          )}
+
           <div className="relative flex-1 min-h-0 overflow-hidden">
             <div ref={scrollContainerRef} onScroll={handleScroll} className="h-full overflow-y-auto">
               <div className="flex flex-col justify-end min-h-full px-6 py-4">
@@ -1038,6 +1089,7 @@ export function ChannelView({
                             isPinned={pinnedIds.has(m.id)}
                             onSave={handleSave}
                             isSaved={savedIds.has(m.id)}
+                            isNew={newMessageIds.has(m.id)}
                           />
                         </div>
                       );

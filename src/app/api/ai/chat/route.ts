@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { createClient } from "@supabase/supabase-js";
+import { TENSION_AI_USER_ID } from "@/lib/types";
 
 // Extend Vercel function timeout to 60s (Pro plan) — silently ignored on hobby tier
 export const maxDuration = 60;
-
-const TENSION_AI_USER_ID = "00000000-0000-0000-0000-000000000001";
 
 export async function POST(req: NextRequest) {
   try {
@@ -38,7 +37,7 @@ export async function POST(req: NextRequest) {
     ]);
 
     const channelNames = (channelsResult.data ?? []).map(c => c.name).join(", ");
-    const memberNames = (membersResult.data ?? []).map((m: any) => m.users?.full_name).filter(Boolean).join(", ");
+    const memberNames = (membersResult.data ?? []).map(m => (m.users as unknown as { full_name: string | null } | null)?.full_name).filter(Boolean).join(", ");
     const channelIds = (channelsResult.data ?? []).map(c => c.id);
     const authorizedDmIds = (userDmsResult.data ?? []).map(d => d.dm_conversation_id);
     const knowledgeText = (knowledgeResult.data ?? [])
@@ -63,9 +62,12 @@ export async function POST(req: NextRequest) {
         : Promise.resolve({ data: [] }),
     ]);
 
+    type ChannelMsg = { body: string; channels: { name: string } | null; users: { full_name: string | null } | null };
+    type DmMsg = { body: string; users: { full_name: string | null } | null };
+
     const recentActivity = [
-      ...(channelMsgs.data ?? []).reverse().map(m => `[#${(m as any).channels?.name}] ${(m as any).users?.full_name}: ${m.body}`),
-      ...(dmMsgs.data ?? []).reverse().map(m => `[DM] ${(m as any).users?.full_name}: ${m.body}`),
+      ...(channelMsgs.data ?? []).reverse().map(m => `[#${(m as unknown as ChannelMsg).channels?.name}] ${(m as unknown as ChannelMsg).users?.full_name}: ${m.body}`),
+      ...(dmMsgs.data ?? []).reverse().map(m => `[DM] ${(m as unknown as DmMsg).users?.full_name}: ${m.body}`),
     ].join("\n");
 
     // Single Gemini call — classify + respond in one shot using gemini-2.0-flash (fast)
@@ -102,29 +104,23 @@ Answer the user's message helpfully and concisely. If they ask about Tension fea
       return NextResponse.json({ error: "Empty response from AI" }, { status: 500 });
     }
 
-    // Insert AI response — try with ai_source first; if column missing, retry without it
-    const baseInsert = {
+    const { error } = await supabaseAdmin.from("messages").insert({
       workspace_id: workspaceId,
       sender_id: TENSION_AI_USER_ID,
       dm_conversation_id: dmId,
       body: aiResponse,
-    };
-
-    const { error } = await supabaseAdmin.from("messages").insert({ ...baseInsert, ai_source: "tension" });
+      ai_source: "tension",
+    });
 
     if (error) {
-      // Retry without ai_source — column may not exist if migration hasn't been applied yet
-      const retry = await supabaseAdmin.from("messages").insert(baseInsert);
-      if (retry.error) {
-        const msg = retry.error.message || retry.error.details || JSON.stringify(retry.error);
-        console.error("Failed to insert AI message:", retry.error);
-        return NextResponse.json({ error: msg || "Insert failed" }, { status: 500 });
-      }
+      const msg = error.message || error.details || JSON.stringify(error);
+      console.error("Failed to insert AI message:", error);
+      return NextResponse.json({ error: msg || "Insert failed" }, { status: 500 });
     }
 
     return NextResponse.json({ ok: true });
-  } catch (err: any) {
-    const msg = err?.message || err?.toString() || "Unknown error";
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err) || "Unknown error";
     console.error("AI chat error:", msg, err);
     return NextResponse.json({ error: msg }, { status: 500 });
   }
