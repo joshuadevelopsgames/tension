@@ -22,16 +22,23 @@ const ThemeContext = createContext<ThemeCtx>({
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<ThemeId>(DEFAULT_THEME);
-  const [mode, setModeState] = useState<Mode>("dark");
+  // Lazy initialisers — read localStorage on first render so React state
+  // already matches what the blocking <script> applied to <html>.
+  const [theme, setThemeState] = useState<ThemeId>(() => {
+    if (typeof window === "undefined") return DEFAULT_THEME;
+    return (localStorage.getItem("tension-theme") as ThemeId) || DEFAULT_THEME;
+  });
+  const [mode, setModeState] = useState<Mode>(() => {
+    if (typeof window === "undefined") return "dark";
+    return (localStorage.getItem("tension-mode") as Mode) || "dark";
+  });
 
+  // Sync attributes once on mount (covers any edge-case where the blocking
+  // script hasn't fired, e.g. CSP-blocked or running in pure SSR).
   useEffect(() => {
-    const saved = (localStorage.getItem("tension-theme") as ThemeId) || DEFAULT_THEME;
-    const savedMode = (localStorage.getItem("tension-mode") as Mode) || "dark";
-    setThemeState(saved);
-    setModeState(savedMode);
-    document.documentElement.setAttribute("data-theme", saved);
-    document.documentElement.setAttribute("data-mode", savedMode);
+    document.documentElement.setAttribute("data-theme", theme);
+    document.documentElement.setAttribute("data-mode", mode);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function setTheme(t: ThemeId) {

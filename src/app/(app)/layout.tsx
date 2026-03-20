@@ -150,15 +150,32 @@ export default function AppLayout({
 
   if (loading) {
     return (
-      <div className="flex flex-col h-screen text-zinc-500 overflow-hidden font-sans border border-white/10 shadow-2xl bg-zinc-950 rounded-xl text-sm">
+      <div
+        className="flex flex-col h-screen overflow-hidden font-sans shadow-2xl rounded-xl text-sm"
+        style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", color: "var(--t-fg-2)" }}
+      >
+        {/* Title bar */}
         <div
           onPointerDown={startWindowDrag}
-          className="h-10 w-full shrink-0 border-b border-white/5 bg-zinc-900 flex items-center px-4 select-none cursor-grab active:cursor-grabbing z-50 relative"
+          className="h-10 w-full shrink-0 flex items-center px-4 select-none cursor-grab active:cursor-grabbing z-50 relative shrink-0"
+          style={{ background: "var(--t-sidebar)", borderBottom: "1px solid var(--t-border)" }}
         >
-          <div className="pl-16 text-[11px] font-medium text-zinc-500 tracking-wide">Tension</div>
+          <span
+            className="pl-16 text-[11px] font-semibold tracking-widest uppercase"
+            style={{ color: "var(--t-accent)" }}
+          >
+            Tension
+          </span>
         </div>
-        <div className="flex-1 flex items-center justify-center">
-          Loading...
+        {/* Spinner */}
+        <div className="flex-1 flex flex-col items-center justify-center gap-4">
+          <div
+            className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin"
+            style={{ borderColor: "var(--t-accent) transparent transparent transparent" }}
+          />
+          <span className="text-xs tracking-wide" style={{ color: "var(--t-fg-3)" }}>
+            Loading workspace…
+          </span>
         </div>
       </div>
     );
@@ -166,15 +183,25 @@ export default function AppLayout({
 
   if (!hasWorkspace) {
     return (
-      <div className="flex flex-col h-screen text-zinc-500 overflow-hidden font-sans border border-white/10 shadow-2xl bg-zinc-950 rounded-xl text-sm">
+      <div
+        className="flex flex-col h-screen overflow-hidden font-sans shadow-2xl rounded-xl text-sm"
+        style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", color: "var(--t-fg-2)" }}
+      >
         <div
           onPointerDown={startWindowDrag}
-          className="h-10 w-full shrink-0 border-b border-white/5 bg-zinc-900 flex items-center px-4 select-none cursor-grab active:cursor-grabbing z-50 relative"
+          className="h-10 w-full shrink-0 flex items-center px-4 select-none cursor-grab active:cursor-grabbing z-50 relative"
+          style={{ background: "var(--t-sidebar)", borderBottom: "1px solid var(--t-border)" }}
         >
-          <div className="pl-16 text-[11px] font-medium text-zinc-500 tracking-wide">Tension</div>
+          <span
+            className="pl-16 text-[11px] font-semibold tracking-widest uppercase"
+            style={{ color: "var(--t-accent)" }}
+          >
+            Tension
+          </span>
         </div>
-        <div className="flex-1 flex flex-col items-center justify-center">
-          <p>No workspace. Run seed or create one.</p>
+        <div className="flex-1 flex flex-col items-center justify-center gap-2">
+          <p className="text-sm" style={{ color: "var(--t-fg-2)" }}>No workspace found.</p>
+          <p className="text-xs" style={{ color: "var(--t-fg-3)" }}>Run seed or create one to get started.</p>
         </div>
       </div>
     );
