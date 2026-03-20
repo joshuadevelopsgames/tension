@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { createClient } from "@supabase/supabase-js";
+import { complete } from "@/lib/openrouter";
 
 export const maxDuration = 30;
 
@@ -39,15 +39,12 @@ export async function POST(req: NextRequest) {
       })
       .join("\n");
 
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-
     const clientCtx = channel?.client_tag ? ` (Client: ${channel.client_tag})` : "";
-    const result = await model.generateContent(
+    const draft = await complete(
       `You are ${myName} in a team messaging app for a marketing agency.\n\nChannel: #${channel?.name || ""}${clientCtx}\n\nRecent conversation:\n${transcript}\n\nWrite a natural, helpful reply as ${myName}. Match the tone (casual for internal, professional for client-related). Return ONLY the reply text with no quotes or preamble.`
     );
 
-    return NextResponse.json({ draft: result.response.text().trim() });
+    return NextResponse.json({ draft: draft.trim() });
   } catch (err: any) {
     console.error("Draft error:", err);
     return NextResponse.json({ error: err.message || "Failed" }, { status: 500 });

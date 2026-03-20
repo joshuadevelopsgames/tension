@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { createClient } from "@supabase/supabase-js";
+import { complete } from "@/lib/openrouter";
 
 export const maxDuration = 30;
 
@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
     const { dmId, userId } = await req.json();
     if (!dmId || !userId) return NextResponse.json({ error: "Missing fields" }, { status: 400 });
 
-    if (!process.env.GEMINI_API_KEY || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    if (!process.env.OPENROUTER_API_KEY || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
       return NextResponse.json({ error: "Server misconfigured" }, { status: 500 });
     }
 
@@ -40,14 +40,11 @@ export async function POST(req: NextRequest) {
       })
       .join("\n");
 
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-
-    const result = await model.generateContent(
+    const text = await complete(
       `You are ${myName} in a team chat. Given this recent conversation, suggest 3 very short reply options (max 8 words each, no punctuation, casual tone).\n\nConversation:\n${transcript}\n\nReturn exactly 3 suggestions, one per line, no numbering, no quotes.`
     );
 
-    const lines = result.response.text().trim().split("\n").filter(Boolean).slice(0, 3);
+    const lines = text.trim().split("\n").filter(Boolean).slice(0, 3);
     return NextResponse.json({ suggestions: lines });
   } catch (err) {
     console.error("Suggest replies error:", err);

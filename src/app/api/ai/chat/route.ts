@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { createClient } from "@supabase/supabase-js";
+import { createOpenRouter, OPENROUTER_MODEL } from "@/lib/openrouter";
 import { TENSION_AI_USER_ID } from "@/lib/types";
+import type OpenAI from "openai";
 
-// Extend Vercel function timeout to 60s (Pro plan) — silently ignored on hobby tier
 export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
@@ -14,15 +14,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    if (!process.env.GEMINI_API_KEY) {
-      return NextResponse.json({ error: "GEMINI_API_KEY not configured" }, { status: 500 });
+    if (!process.env.OPENROUTER_API_KEY) {
+      return NextResponse.json({ error: "OPENROUTER_API_KEY not configured" }, { status: 500 });
     }
 
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
       return NextResponse.json({ error: "SUPABASE_SERVICE_ROLE_KEY not configured" }, { status: 500 });
     }
 
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -70,10 +69,7 @@ export async function POST(req: NextRequest) {
       ...(dmMsgs.data ?? []).reverse().map(m => `[DM] ${(m as unknown as DmMsg).users?.full_name}: ${m.body}`),
     ].join("\n");
 
-    // Single Gemini call — classify + respond in one shot using gemini-2.0-flash (fast)
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash",
-      systemInstruction: `You are Tension AI, a helpful assistant built into the Tension team chat app.
+    const systemPrompt = `You are Tension AI, a helpful assistant built into the Tension team chat app.
 
 --- WORKSPACE CONTEXT ---
 Channels: ${channelNames || "none"}
@@ -85,20 +81,20 @@ ${recentActivity || "No recent activity"}
 --- TENSION KNOWLEDGE BASE ---
 ${knowledgeText || "No knowledge base entries"}
 
-Answer the user's message helpfully and concisely. If they ask about Tension features, workspace info, or recent conversations, use the context above. For general questions, answer from your knowledge.`,
-    });
+Answer the user's message helpfully and concisely. If they ask about Tension features, workspace info, or recent conversations, use the context above. For general questions, answer from your knowledge.`;
 
-    // Gemini only accepts "user" or "model" roles — map "assistant" → "model" defensively
-    const contents = [
+    const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
+      { role: "system", content: systemPrompt },
       ...(history ?? []).map((h: { role: string; content: string }) => ({
-        role: (h.role === "user" ? "user" : "model") as "user" | "model",
-        parts: [{ text: h.content }],
+        role: (h.role === "user" ? "user" : "assistant") as "user" | "assistant",
+        content: h.content,
       })),
-      { role: "user" as const, parts: [{ text: message }] },
+      { role: "user", content: message },
     ];
 
-    const result = await model.generateContent({ contents });
-    const aiResponse = result.response.text();
+    const client = createOpenRouter();
+    const result = await client.chat.completions.create({ model: OPENROUTER_MODEL, messages });
+    const aiResponse = result.choices[0]?.message?.content ?? "";
 
     if (!aiResponse) {
       return NextResponse.json({ error: "Empty response from AI" }, { status: 500 });
@@ -113,9 +109,8 @@ Answer the user's message helpfully and concisely. If they ask about Tension fea
     });
 
     if (error) {
-      const msg = error.message || error.details || JSON.stringify(error);
       console.error("Failed to insert AI message:", error);
-      return NextResponse.json({ error: msg || "Insert failed" }, { status: 500 });
+      return NextResponse.json({ error: error.message || "Insert failed" }, { status: 500 });
     }
 
     return NextResponse.json({ ok: true });

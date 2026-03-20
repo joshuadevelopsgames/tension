@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { createClient } from "@supabase/supabase-js";
+import { complete } from "@/lib/openrouter";
 
 export const maxDuration = 60;
 
@@ -40,8 +40,6 @@ export async function POST(req: NextRequest) {
       .join("\n");
 
     const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     const contextLines = [
       `Channel: #${channel?.name || ""}`,
@@ -50,11 +48,11 @@ export async function POST(req: NextRequest) {
       channel?.topic ? `Context: ${channel.topic}` : "",
     ].filter(Boolean).join("\n");
 
-    const result = await model.generateContent(
+    const brief = await complete(
       `You are a senior account manager at a marketing agency. Based on the team conversation below, generate a structured campaign/creative brief.\n\n${contextLines}\n\nConversation:\n${transcript}\n\nGenerate a professional brief using this exact markdown structure:\n\n## Campaign Brief\n\n**Client:** [inferred or TBD]\n**Campaign:** [inferred or TBD]\n**Date:** ${today}\n\n### Objective\n[What this campaign aims to achieve]\n\n### Target Audience\n[Who we're targeting]\n\n### Key Messages\n- [main message 1]\n- [main message 2]\n\n### Deliverables\n- [deliverable 1 with owner if mentioned]\n\n### Timeline\n[Key dates and milestones — use TBD if not mentioned]\n\n### Open Items / Next Steps\n- [unresolved question or action]\n\nWrite "TBD" rather than guessing when information isn't in the conversation.`
     );
 
-    return NextResponse.json({ brief: result.response.text() });
+    return NextResponse.json({ brief });
   } catch (err: any) {
     console.error("Brief error:", err);
     return NextResponse.json({ error: err.message || "Failed" }, { status: 500 });

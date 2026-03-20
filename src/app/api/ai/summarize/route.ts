@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { createClient } from "@supabase/supabase-js";
+import { complete } from "@/lib/openrouter";
 
 export const maxDuration = 60;
 
@@ -43,9 +43,6 @@ export async function POST(req: NextRequest) {
       })
       .join("\n");
 
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-
     const contextLines = [
       `Channel: #${channel?.name || channelId}`,
       channel?.topic ? `Topic: ${channel.topic}` : "",
@@ -53,11 +50,11 @@ export async function POST(req: NextRequest) {
       channel?.campaign_tag ? `Campaign: ${channel.campaign_tag}` : "",
     ].filter(Boolean).join("\n");
 
-    const result = await model.generateContent(
+    const summary = await complete(
       `You are summarizing a team channel for a marketing agency.\n\n${contextLines}\n\nRecent messages:\n${transcript}\n\nProvide a concise summary with these sections (use markdown):\n\n**Key Decisions** — What was decided or agreed on\n**Key Points** — Main topics discussed\n**Open Questions** — Unresolved items needing follow-up\n**Action Items** — Clear next steps mentioned\n\nKeep each section to bullet points. Be concise.`
     );
 
-    return NextResponse.json({ summary: result.response.text() });
+    return NextResponse.json({ summary });
   } catch (err: any) {
     console.error("Summarize error:", err);
     return NextResponse.json({ error: err.message || "Failed" }, { status: 500 });
