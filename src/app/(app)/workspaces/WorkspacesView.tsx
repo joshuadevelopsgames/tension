@@ -840,15 +840,18 @@ export function WorkspacesView() {
               </DndContext>
 
               {/* Add block button */}
-              <div className="max-w-3xl mx-auto mt-3">
+              <div className="max-w-3xl mx-auto mt-3 relative">
                 <button
-                  onClick={() => {
+                  onClick={(e) => {
+                    // Open the block picker anchored to this button
+                    const rect = (e.currentTarget as HTMLButtonElement).getBoundingClientRect();
+                    // Add a temporary anchor block so the slash menu has a blockId to target
                     pushUndo();
-                    const block = newBlock("text");
-                    const updated = { ...active, blocks: [...active.blocks, block] };
+                    const anchor = newBlock("text");
+                    const updated = { ...active, blocks: [...active.blocks, anchor] };
                     setActive(updated);
                     scheduleSave(updated);
-                    setTimeout(() => blockRefs.current.get(block.id)?.focus(), 30);
+                    openSlashMenu(rect, anchor.id);
                   }}
                   className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors hover:bg-white/5"
                   style={{ color: "var(--t-fg-3)" }}

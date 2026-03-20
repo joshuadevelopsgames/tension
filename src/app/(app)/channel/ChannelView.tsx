@@ -610,7 +610,7 @@ function DetailsPanel({
       <div className="flex-1 overflow-y-auto">
         {/* Large channel name */}
         <div className="px-5 pt-6 pb-4 border-b border-[var(--t-border)]">
-          <p className="text-[10px] font-semibold text-emerald-400/70 uppercase tracking-widest mb-1">Channel</p>
+          <p className="text-[10px] font-semibold uppercase tracking-widest mb-1" style={{ color: "var(--t-accent)", opacity: 0.7 }}>Channel</p>
           <h2 className="text-2xl font-bold text-white tracking-tight leading-tight break-words">
             #{channel.name}
           </h2>
@@ -619,7 +619,7 @@ function DetailsPanel({
           )}
           {memberCount > 0 && (
             <p className="mt-3 text-[11px] text-zinc-500">
-              <span className="text-emerald-400 font-semibold">{memberCount}</span> member{memberCount !== 1 ? "s" : ""}
+              <span className="font-semibold" style={{ color: "var(--t-accent)" }}>{memberCount}</span> member{memberCount !== 1 ? "s" : ""}
             </p>
           )}
         </div>
@@ -634,7 +634,7 @@ function DetailsPanel({
           ) : (
             <div className="space-y-2">
               {pins.map((pin) => (
-                <div key={pin.id} className="bg-white/[0.04] rounded-lg p-3 border-l-2 border-emerald-500/50">
+                <div key={pin.id} className="bg-white/[0.04] rounded-lg p-3 border-l-2" style={{ borderColor: "color-mix(in srgb, var(--t-accent) 50%, transparent)" }}>
                   <p className="text-[11px] font-semibold text-zinc-300 mb-1">
                     {pin.message.users?.full_name || "Unknown"}
                   </p>
@@ -1177,7 +1177,8 @@ export function ChannelView({
               {/* Details */}
               <button
                 onClick={() => { setDetailsOpen((o) => !o); setThreadParent(null); setPinsOpen(false); }}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors ${detailsOpen ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"}`}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors ${detailsOpen ? "border" : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"}`}
+                style={detailsOpen ? { background: "color-mix(in srgb, var(--t-accent) 15%, transparent)", color: "var(--t-accent)", borderColor: "color-mix(in srgb, var(--t-accent) 30%, transparent)" } : {}}
                 title="Channel details"
               >
                 <Hash className="w-3 h-3" />
