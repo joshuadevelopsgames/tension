@@ -124,7 +124,7 @@ export function NewDMModal({
       onClick={onClose}
     >
       <div
-        className="bg-zinc-900 border border-white/10 rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden flex flex-col"
+        className="bg-[var(--t-raised)] border border-[var(--t-border)] rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-4 border-b border-white/5">

@@ -166,11 +166,11 @@ export function ProfileModal({
     <ModalPortal>
     <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div
-        className="bg-zinc-900/90 backdrop-blur-xl border border-white/[0.08] rounded-2xl w-full max-w-md overflow-hidden flex flex-col"
+        className="bg-[var(--t-raised)]/95 backdrop-blur-xl border border-[var(--t-border)] rounded-2xl w-full max-w-md overflow-hidden flex flex-col"
         style={{ boxShadow:'0px 24px 48px rgba(0,0,0,0.6)', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', Inter, 'Helvetica Neue', Arial, sans-serif" }}
         onClick={e => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/5">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--t-border)]">
           <h2 className="text-[15px] font-medium tracking-tight text-white">Edit Profile</h2>
           <button onClick={onClose} className="p-1 hover:bg-white/10 rounded-md text-zinc-400 hover:text-white transition-colors">
             <X className="w-4 h-4" />
@@ -185,7 +185,7 @@ export function ProfileModal({
           <form onSubmit={handleSave} className="p-4 space-y-4">
             <div className="flex flex-col items-center gap-2">
               <div 
-                className="relative w-16 h-16 rounded-full bg-zinc-800 border-2 border-zinc-700/50 flex items-center justify-center overflow-hidden cursor-pointer group"
+                className="relative w-16 h-16 rounded-full bg-[var(--t-surface)] border-2 border-[var(--t-border)] flex items-center justify-center overflow-hidden cursor-pointer group"
                 onClick={() => fileInputRef.current?.click()}
               >
                 {avatarUrl ? (
@@ -249,7 +249,7 @@ export function ProfileModal({
                       {statusEmoji || "😀"}
                     </button>
                     {emojiPickerOpen && (
-                      <div className="absolute top-full left-0 mt-1 bg-zinc-800 border border-white/10 rounded-xl p-2 shadow-2xl grid grid-cols-6 gap-0.5 z-[300] w-48 max-h-48 overflow-y-auto">
+                      <div className="absolute top-full left-0 mt-1 bg-[var(--t-raised)] border border-[var(--t-border)] rounded-xl p-2 shadow-2xl grid grid-cols-6 gap-0.5 z-[300] w-48 max-h-48 overflow-y-auto">
                         {STATUS_EMOJIS.map((e) => (
                           <button
                             key={e}
@@ -307,7 +307,7 @@ export function ProfileModal({
             {/* Theme selector */}
             <ThemeSelector />
 
-            <div className="pt-4 flex justify-end gap-3 border-t border-white/5">
+            <div className="pt-4 flex justify-end gap-3 border-t border-[var(--t-border)]">
               <button
                 type="button"
                 onClick={onClose}
