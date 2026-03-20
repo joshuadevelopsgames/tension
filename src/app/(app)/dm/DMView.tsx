@@ -353,7 +353,11 @@ export function DMView({
             onClick={() => {
               const me = participants.find((p) => p.user_id === currentUserId);
               const displayName = me?.full_name || "Someone";
-              startHuddle(`dm-${dmId}`, currentUserId, displayName);
+              startHuddle(`dm-${dmId}`, currentUserId, displayName, {
+                inviteUserIds: otherParticipants
+                  .filter((p) => p.user_id !== TENSION_AI_USER_ID)
+                  .map((p) => p.user_id),
+              });
             }}
             disabled={isConnecting}
             className={`ml-auto flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors ${

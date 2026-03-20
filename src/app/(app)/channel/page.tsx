@@ -62,15 +62,16 @@ function ChannelPageContent() {
     if (!id) return;
     latestIdRef.current = id;
 
-    // Already cached → swap state instantly, no fetch needed
     const hit = channelCache.get(id);
     if (hit) {
       setChannel(hit.channel);
       setMessages(hit.messages);
-      return;
+    } else {
+      setChannel(null);
+      setMessages([]);
     }
 
-    // Not cached yet → fetch both in parallel
+    // Always refetch so cached channel views are not stuck with stale messages
     const supabase = createClient();
     Promise.all([
       supabase

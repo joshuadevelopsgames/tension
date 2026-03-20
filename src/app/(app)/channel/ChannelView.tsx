@@ -764,15 +764,7 @@ export function ChannelView({
   // node) while still clearing per-channel state cleanly.
   useEffect(() => {
     setChannel(initialChannel);
-    setAllMessages(initialMessages);
     setThreadParent(null);
-    setReplyCounts(() => {
-      const counts: Record<string, number> = {};
-      for (const m of initialMessages) {
-        if (m.parent_id) counts[m.parent_id] = (counts[m.parent_id] ?? 0) + 1;
-      }
-      return counts;
-    });
     setSummaryOpen(false);
     setSummaryText("");
     setBriefOpen(false);
@@ -788,9 +780,21 @@ export function ChannelView({
     setShowFirstMessageBanner(false);
     setTypingUsers(new Map());
     setShowScrollBtn(false);
-    wasEmptyRef.current = initialMessages.length === 0;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialChannel.id]);
+
+  // Parent refetches messages after cache hit / navigation; keep list in sync without remounting.
+  useEffect(() => {
+    setAllMessages(initialMessages);
+    setReplyCounts(() => {
+      const counts: Record<string, number> = {};
+      for (const m of initialMessages) {
+        if (m.parent_id) counts[m.parent_id] = (counts[m.parent_id] ?? 0) + 1;
+      }
+      return counts;
+    });
+    wasEmptyRef.current = initialMessages.length === 0;
+  }, [initialMessages]);
 
   const topLevelMessages = allMessages.filter((m) => m.parent_id === null);
 
@@ -889,7 +893,6 @@ export function ChannelView({
           let isNew = false;
           setAllMessages((prev) => {
             if (prev.some((m) => m.id === newMsg.id)) return prev.map((m) => m.id === newMsg.id ? { ...m, ...newMsg } : m);
-            if (prev.some((m) => m.body === newMsg.body && m.created_at === newMsg.created_at)) return prev;
             isNew = true;
             return [...prev, newMsg];
           });
@@ -1130,7 +1133,13 @@ export function ChannelView({
                 onClick={() => {
                   if (!currentUserId) return;
                   const displayName = cachedProfileRef.current?.full_name || "Someone";
-                  startHuddle(`channel-${channel.id}`, currentUserId, displayName);
+                  startHuddle(`channel-${channel.id}`, currentUserId, displayName, {
+                    channelInfo: {
+                      workspaceId,
+                      channelId: channel.id,
+                      channelName: channel.name,
+                    },
+                  });
                 }}
                 disabled={isConnecting}
                 className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors ${
