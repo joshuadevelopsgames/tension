@@ -10,8 +10,17 @@ import { NotificationBell } from "./NotificationBell";
 import { startWindowDrag } from "@/lib/tauri";
 import { ProfileModal } from "./ProfileModal";
 import { Bookmark, Plus, Settings, Users, LogOut, Sparkles } from "lucide-react";
+import { StatusBar } from "./StatusBar";
 import { useState, useEffect, useRef, Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
+
+function StatusBarWrapper({ workspaceName, channels }: { workspaceName: string; channels: { id: string; name: string; slug: string }[] }) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const activeChannelId = pathname === "/channel" ? searchParams.get("id") : null;
+  const activeChannel = activeChannelId ? channels.find((c) => c.id === activeChannelId) : null;
+  return <StatusBar workspaceName={workspaceName} channelName={activeChannel?.name} />;
+}
 
 type DMItem = {
   id: string;
@@ -562,6 +571,9 @@ export function AppShell({
           <div className="flex-1 overflow-hidden flex flex-col relative z-20">
             {children}
           </div>
+          <Suspense fallback={null}>
+            <StatusBarWrapper workspaceName={workspaceName} channels={channels} />
+          </Suspense>
         </main>
       </div>
 

@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { ChevronDown, Send, Sparkles } from "lucide-react";
 import { MarkdownMessage } from "@/components/MarkdownMessage";
 import { DateSeparator, isDifferentDay } from "@/components/DateSeparator";
 import { TENSION_AI_USER_ID } from "@/lib/types";
+
+const GROUP_THRESHOLD = 300000; // 5 minutes
 
 type Message = {
   id: string;
@@ -55,6 +57,28 @@ export function DMView({
   const otherName =
     otherParticipants.map((p) => p.full_name || `User ${p.user_id.slice(0, 4)}`).join(", ") || "Unknown";
   const isAIChat = participants.some(p => p.user_id === TENSION_AI_USER_ID);
+
+  const messageGroups = useMemo(() => {
+    const groups: { messages: Message[]; showDate: boolean }[] = [];
+    for (let i = 0; i < messages.length; i++) {
+      const m = messages[i];
+      const prev = messages[i - 1] ?? null;
+      const showDate = !prev || isDifferentDay(prev.created_at, m.created_at);
+      const lastGroup = groups[groups.length - 1];
+      const lastMsg = lastGroup?.messages[lastGroup.messages.length - 1];
+      const canGroup =
+        !showDate &&
+        lastMsg &&
+        lastMsg.sender_id === m.sender_id &&
+        new Date(m.created_at).getTime() - new Date(lastMsg.created_at).getTime() <= GROUP_THRESHOLD;
+      if (canGroup) {
+        lastGroup.messages.push(m);
+      } else {
+        groups.push({ messages: [m], showDate });
+      }
+    }
+    return groups;
+  }, [messages]);
 
   // Fetch other participant's timezone
   useEffect(() => {
@@ -355,63 +379,55 @@ export function DMView({
           </div>
         ) : null}
 
-        {messages.map((m, i) => {
-            const prev = messages[i - 1] ?? null;
-            const showDate = !prev || isDifferentDay(prev.created_at, m.created_at);
-            const time = new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-            const info = userMap.get(m.sender_id) ?? {
-              name: `User ${m.sender_id.slice(0, 4)}`,
-              initials: m.sender_id.slice(0, 2).toUpperCase(),
-              avatar_url: null,
-            };
-            const isGrouped =
-              !showDate &&
-              i > 0 &&
-              messages[i - 1].sender_id === m.sender_id &&
-              new Date(m.created_at).getTime() - new Date(messages[i - 1].created_at).getTime() <= 3600000;
-
-            if (isGrouped) {
-              return (
-                <div key={m.id}>
-                {showDate && <DateSeparator date={m.created_at} />}
-                <div className="flex gap-4 group mt-1 hover:bg-white/[0.02] -mx-4 px-4 py-0.5 rounded-sm">
-                  <div className="w-8 shrink-0 text-right">
-                    <span className="text-[10px] font-medium text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap block mt-1">
-                      {time}
-                    </span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <MarkdownMessage body={m.body} aiSource={m.ai_source} />
-                  </div>
-                </div>
-                </div>
-              );
-            }
-
-            return (
-              <div key={m.id}>
-              {showDate && <DateSeparator date={m.created_at} />}
-              <div className="flex gap-4 group mt-4 hover:bg-white/[0.02] -mx-4 px-4 py-1 rounded-sm">
-                <div className="w-8 h-8 rounded shrink-0 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center text-xs font-semibold text-indigo-300 select-none mt-0.5 overflow-hidden">
-                  {info.avatar_url ? (
-                    <img src={info.avatar_url} alt={info.name} className="w-full h-full object-cover" />
-                  ) : (
-                    info.initials
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className="text-[13px] font-semibold text-zinc-200">{info.name}</span>
-                    <span className="text-[10px] font-medium text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {time}
-                    </span>
-                  </div>
-                  <MarkdownMessage body={m.body} aiSource={m.ai_source} />
-                </div>
+        {messageGroups.map((group) => (
+            <div key={group.messages[0].id}>
+              {group.showDate && <DateSeparator date={group.messages[0].created_at} />}
+              <div className="mt-3 bg-[var(--t-card)] rounded-xl px-4 py-2 overflow-hidden">
+                {group.messages.map((m, i) => {
+                  const time = new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+                  const info = userMap.get(m.sender_id) ?? {
+                    name: `User ${m.sender_id.slice(0, 4)}`,
+                    initials: m.sender_id.slice(0, 2).toUpperCase(),
+                    avatar_url: null,
+                  };
+                  if (i > 0) {
+                    return (
+                      <div key={m.id} className="flex gap-4 group -mx-4 px-4 py-0.5 hover:bg-white/[0.03] transition-colors">
+                        <div className="w-8 shrink-0 text-right">
+                          <span className="text-[10px] font-medium text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap block mt-0.5">
+                            {time}
+                          </span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <MarkdownMessage body={m.body} aiSource={m.ai_source} />
+                        </div>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div key={m.id} className="flex gap-4 group -mx-4 px-4 py-1 hover:bg-white/[0.03] transition-colors">
+                      <div className="w-8 h-8 rounded shrink-0 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center text-xs font-semibold text-indigo-300 select-none mt-0.5 overflow-hidden">
+                        {info.avatar_url ? (
+                          <img src={info.avatar_url} alt={info.name} className="w-full h-full object-cover" />
+                        ) : (
+                          info.initials
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="text-[13px] font-semibold text-zinc-200">{info.name}</span>
+                          <span className="text-[10px] font-medium text-zinc-600">
+                            {time}
+                          </span>
+                        </div>
+                        <MarkdownMessage body={m.body} aiSource={m.ai_source} />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-              </div>
-            );
-          })}
+            </div>
+          ))}
           <div ref={messagesEndRef} />
         </div>
         </div>

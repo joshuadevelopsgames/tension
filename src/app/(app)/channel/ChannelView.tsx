@@ -48,11 +48,13 @@ const COMMON_EMOJI = [
   "😎", "🫡", "💪", "🎯", "📌", "⚠️", "🏆", "✨",
 ];
 
+const GROUP_THRESHOLD = 300000; // 5 minutes — same sender messages within this window merge into one block
+
 // ─── Message Row ──────────────────────────────────────────────────────────────
 
 function MessageRow({
   m,
-  prev,
+  isGroupStart,
   currentUserId,
   workspaceId,
   onThreadClick,
@@ -67,7 +69,7 @@ function MessageRow({
   onProfileClick,
 }: {
   m: Message;
-  prev: Message | null;
+  isGroupStart: boolean;
   currentUserId: string | null;
   workspaceId: string | null;
   onThreadClick?: (msg: Message) => void;
@@ -116,11 +118,6 @@ function MessageRow({
   }
 
   const time = new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  const isGrouped =
-    prev !== null &&
-    prev.sender_id === m.sender_id &&
-    new Date(m.created_at).getTime() - new Date(prev.created_at).getTime() <= 3600000;
-
   useEffect(() => {
     if (isEditing) editRef.current?.focus();
   }, [isEditing]);
@@ -267,11 +264,11 @@ function MessageRow({
   const urgentBorder = m.urgent ? "border-l-2 border-amber-500/60 pl-2" : "";
   const newAnim = isNew ? "animate-msg-in" : "";
 
-  if (isGrouped) {
+  if (!isGroupStart) {
     return (
-      <div className={`flex gap-4 group mt-0.5 bg-[var(--t-card)] rounded-xl px-4 py-2 relative ${urgentBorder} ${newAnim}`}>
+      <div className={`flex gap-4 group -mx-4 px-4 py-0.5 relative hover:bg-white/[0.03] transition-colors ${urgentBorder} ${newAnim}`}>
         <div className="w-8 shrink-0 text-right">
-          <span className="text-[10px] font-medium text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap block mt-1">
+          <span className="text-[10px] font-medium text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap block mt-0.5">
             {time}
           </span>
         </div>
@@ -282,7 +279,7 @@ function MessageRow({
   }
 
   return (
-    <div className={`flex gap-4 group mt-3 bg-[var(--t-card)] rounded-xl px-4 py-3 relative ${urgentBorder} ${newAnim}`}>
+    <div className={`flex gap-4 group -mx-4 px-4 py-1 relative hover:bg-white/[0.03] transition-colors ${urgentBorder} ${newAnim}`}>
       <UserAvatar
         userId={m.sender_id}
         displayName={m.users?.full_name || undefined}
@@ -297,7 +294,6 @@ function MessageRow({
           <UserHoverCard userId={m.sender_id} displayName={m.users?.full_name} currentUserId={currentUserId} workspaceId={workspaceId} onProfileClick={onProfileClick}>
             {m.users?.full_name || `User ${m.sender_id.slice(0, 4)}`}
           </UserHoverCard>
-          {/* Inline role badge from bio (short bio = role title) */}
           {m.users?.bio && m.users.bio.length <= 28 && (
             <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest bg-[var(--t-accent)]/15 text-[var(--t-accent)] border border-[var(--t-accent)]/25">
               {m.users.bio}
@@ -308,7 +304,7 @@ function MessageRow({
               ⚠️ Urgent
             </span>
           )}
-          <span className="text-[10px] font-medium text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity">
+          <span className="text-[10px] font-medium text-zinc-600">
             {time}
           </span>
         </div>
@@ -761,6 +757,28 @@ export function ChannelView({
 
   const topLevelMessages = allMessages.filter((m) => m.parent_id === null);
 
+  const messageGroups = useMemo(() => {
+    const groups: { messages: Message[]; showDate: boolean }[] = [];
+    for (let i = 0; i < topLevelMessages.length; i++) {
+      const m = topLevelMessages[i];
+      const prev = topLevelMessages[i - 1] ?? null;
+      const showDate = !prev || isDifferentDay(prev.created_at, m.created_at);
+      const lastGroup = groups[groups.length - 1];
+      const lastMsg = lastGroup?.messages[lastGroup.messages.length - 1];
+      const canGroup =
+        !showDate &&
+        lastMsg &&
+        lastMsg.sender_id === m.sender_id &&
+        new Date(m.created_at).getTime() - new Date(lastMsg.created_at).getTime() <= GROUP_THRESHOLD;
+      if (canGroup) {
+        lastGroup.messages.push(m);
+      } else {
+        groups.push({ messages: [m], showDate });
+      }
+    }
+    return groups;
+  }, [topLevelMessages]);
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       const uid = data.user?.id || null;
@@ -1169,31 +1187,32 @@ export function ChannelView({
                   </div>
                 ) : (
                   <>
-                    {topLevelMessages.map((m, i) => {
-                      const prev = topLevelMessages[i - 1] ?? null;
-                      const showDate = !prev || isDifferentDay(prev.created_at, m.created_at);
-                      return (
-                        <div key={m.id}>
-                          {showDate && <DateSeparator date={m.created_at} />}
-                          <MessageRow
-                            m={m}
-                            prev={showDate ? null : prev}
-                            currentUserId={currentUserId}
-                            workspaceId={workspaceId}
-                            onThreadClick={(msg) => { setThreadParent(msg); setPinsOpen(false); setDetailsOpen(false); setProfilePanelUserId(null); }}
-                            replyCount={replyCounts[m.id] ?? 0}
-                            onEdit={handleEdit}
-                            onDelete={handleDelete}
-                            onPin={handlePin}
-                            isPinned={pinnedIds.has(m.id)}
-                            onSave={handleSave}
-                            isSaved={savedIds.has(m.id)}
-                            isNew={newMessageIds.has(m.id)}
-                            onProfileClick={(uid) => { setProfilePanelUserId(uid); setThreadParent(null); setPinsOpen(false); setDetailsOpen(false); }}
-                          />
+                    {messageGroups.map((group) => (
+                      <div key={group.messages[0].id}>
+                        {group.showDate && <DateSeparator date={group.messages[0].created_at} />}
+                        <div className="mt-3 bg-[var(--t-card)] rounded-xl px-4 py-2 overflow-hidden">
+                          {group.messages.map((m, i) => (
+                            <MessageRow
+                              key={m.id}
+                              m={m}
+                              isGroupStart={i === 0}
+                              currentUserId={currentUserId}
+                              workspaceId={workspaceId}
+                              onThreadClick={(msg) => { setThreadParent(msg); setPinsOpen(false); setDetailsOpen(false); setProfilePanelUserId(null); }}
+                              replyCount={replyCounts[m.id] ?? 0}
+                              onEdit={handleEdit}
+                              onDelete={handleDelete}
+                              onPin={handlePin}
+                              isPinned={pinnedIds.has(m.id)}
+                              onSave={handleSave}
+                              isSaved={savedIds.has(m.id)}
+                              isNew={newMessageIds.has(m.id)}
+                              onProfileClick={(uid) => { setProfilePanelUserId(uid); setThreadParent(null); setPinsOpen(false); setDetailsOpen(false); }}
+                            />
+                          ))}
                         </div>
-                      );
-                    })}
+                      </div>
+                    ))}
                     <div ref={messagesEndRef} />
                   </>
                 )}
