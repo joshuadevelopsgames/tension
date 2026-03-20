@@ -315,7 +315,7 @@ export function DMView({
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <header className="px-6 py-4 pt-10 flex items-center gap-3 shrink-0 border-b border-white/5 select-none">
+      <header className="px-6 py-4 pt-10 flex items-center gap-3 shrink-0 border-b border-[var(--t-border)] select-none">
         <div className="flex -space-x-2">
           {otherParticipants.slice(0, 3).map((p) => {
             const info = userMap.get(p.user_id);
@@ -323,10 +323,10 @@ export function DMView({
             return (
               <div
                 key={p.user_id}
-                className={`w-7 h-7 rounded-full border border-white/10 flex items-center justify-center text-xs font-semibold overflow-hidden ${
+                className={`w-7 h-7 rounded-full border border-[var(--t-border)] flex items-center justify-center text-xs font-semibold overflow-hidden ${
                   isTensionBot
-                    ? "bg-gradient-to-br from-indigo-600 to-violet-600 text-white"
-                    : "bg-gradient-to-br from-indigo-500/20 to-purple-500/20 text-indigo-300"
+                    ? "bg-[var(--t-accent)] text-white"
+                    : "bg-[var(--t-accent)]/20 text-[var(--t-accent)]"
                 }`}
               >
                 {isTensionBot ? (
@@ -342,7 +342,7 @@ export function DMView({
         </div>
         <div>
           <h2 className="font-semibold text-zinc-100 text-sm">{otherName}</h2>
-          {isAIChat && <p className="text-[10px] text-indigo-400 font-medium">AI Assistant · powered by Gemini</p>}
+          {isAIChat && <p className="text-[10px] text-[var(--t-accent)] font-medium">AI Assistant · powered by Gemini</p>}
         </div>
       </header>
 
@@ -362,7 +362,7 @@ export function DMView({
                   return (
                     <div
                       key={p.user_id}
-                      className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border-2 border-zinc-900 flex items-center justify-center text-base font-semibold text-indigo-300 overflow-hidden"
+                      className="w-12 h-12 rounded-full bg-[var(--t-accent)]/20 border-2 border-[var(--t-surface)] flex items-center justify-center text-base font-semibold text-[var(--t-accent)] overflow-hidden"
                     >
                       {p.avatar_url ? (
                         <img src={p.avatar_url} alt={info?.name} className="w-full h-full object-cover" />
@@ -406,7 +406,7 @@ export function DMView({
                   }
                   return (
                     <div key={m.id} className="flex gap-4 group -mx-4 px-4 py-1 hover:bg-white/[0.03] transition-colors">
-                      <div className="w-8 h-8 rounded shrink-0 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center text-xs font-semibold text-indigo-300 select-none mt-0.5 overflow-hidden">
+                      <div className="w-8 h-8 rounded shrink-0 bg-[var(--t-accent)]/20 border border-[var(--t-border)] flex items-center justify-center text-xs font-semibold text-[var(--t-accent)] select-none mt-0.5 overflow-hidden">
                         {info.avatar_url ? (
                           <img src={info.avatar_url} alt={info.name} className="w-full h-full object-cover" />
                         ) : (
@@ -436,7 +436,7 @@ export function DMView({
         {showScrollBtn && (
           <button
             onClick={() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })}
-            className="absolute bottom-4 right-6 w-8 h-8 bg-zinc-800 border border-white/10 rounded-full flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-700 shadow-xl transition-all z-10"
+            className="absolute bottom-4 right-6 w-8 h-8 bg-[var(--t-raised)] border border-[var(--t-border)] rounded-full flex items-center justify-center text-zinc-400 hover:text-white hover:bg-[var(--t-raised)]/80 shadow-xl transition-all z-10"
             title="Jump to bottom"
           >
             <ChevronDown className="w-4 h-4" />
@@ -447,7 +447,7 @@ export function DMView({
       {/* Typing indicator */}
       <div className="px-6 h-5 shrink-0 flex items-center">
         {aiThinking ? (
-          <div className="flex items-center gap-2 text-[11px] text-indigo-400">
+          <div className="flex items-center gap-2 text-[11px] text-[var(--t-accent)]">
             <Sparkles className="w-3 h-3 animate-pulse" />
             <span>Tension AI is thinking…</span>
           </div>
@@ -494,7 +494,7 @@ export function DMView({
               <button
                 key={i}
                 onClick={() => { setDraft(s); setSmartReplies([]); }}
-                className="px-2.5 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-[11px] font-medium hover:bg-indigo-500/20 transition-colors"
+                className="px-2.5 py-1 rounded-full bg-[var(--t-accent)]/10 border border-[var(--t-accent)]/20 text-[var(--t-accent)] text-[11px] font-medium hover:bg-[var(--t-accent)]/20 transition-colors"
               >
                 {s}
               </button>
@@ -503,14 +503,14 @@ export function DMView({
         )}
         <form
           onSubmit={(e) => { e.preventDefault(); send(); }}
-          className="flex items-end gap-2 bg-black/40 backdrop-blur-md border border-white/10 rounded-xl p-1 shadow-inner focus-within:border-white/20 focus-within:bg-black/60 transition-colors"
+          className="flex items-end gap-2 bg-[var(--t-surface)]/80 backdrop-blur-md border border-[var(--t-border)] rounded-xl p-1 shadow-inner focus-within:border-[var(--t-accent)]/40 focus-within:bg-[var(--t-surface)]/90 transition-colors"
         >
           {!isAIChat && (
             <button
               type="button"
               onClick={fetchSmartReplies}
               disabled={smartRepliesLoading || messages.length === 0}
-              className="p-2 mb-0.5 ml-0.5 rounded-lg text-zinc-500 hover:text-indigo-400 hover:bg-indigo-500/10 disabled:opacity-30 transition-colors shrink-0"
+              className="p-2 mb-0.5 ml-0.5 rounded-lg text-zinc-500 hover:text-[var(--t-accent)] hover:bg-[var(--t-accent)]/10 disabled:opacity-30 transition-colors shrink-0"
               title="Suggest replies"
             >
               {smartRepliesLoading

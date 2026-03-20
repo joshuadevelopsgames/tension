@@ -298,16 +298,16 @@ export function MessageComposer({
           {pendingFiles.map((pf, i) => (
             <div key={i} className="relative group">
               {pf.previewUrl ? (
-                <img src={pf.previewUrl} alt={pf.file.name} className="w-16 h-16 object-cover rounded-lg border border-white/10" />
+                <img src={pf.previewUrl} alt={pf.file.name} className="w-16 h-16 object-cover rounded-lg border border-[var(--t-border)]" />
               ) : (
-                <div className="w-16 h-16 rounded-lg border border-white/10 bg-white/5 flex items-center justify-center">
+                <div className="w-16 h-16 rounded-lg border border-[var(--t-border)] bg-white/5 flex items-center justify-center">
                   <span className="text-[10px] text-zinc-500 text-center px-1 break-all">{pf.file.name.slice(0, 12)}</span>
                 </div>
               )}
               <button
                 type="button"
                 onClick={() => removeFile(i)}
-                className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-zinc-700 border border-zinc-600 rounded-full flex items-center justify-center text-zinc-300 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-[var(--t-raised)]/80 border border-[var(--t-border)] rounded-full flex items-center justify-center text-zinc-300 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"
               >
                 <X className="w-2.5 h-2.5" />
               </button>
@@ -318,17 +318,17 @@ export function MessageComposer({
 
       {/* /slash commands dropdown */}
       {slashQuery !== null && filteredSlash.length > 0 && (
-        <div className="mb-1 bg-zinc-800 border border-white/10 rounded-xl shadow-xl overflow-hidden">
+        <div className="mb-1 bg-[var(--t-raised)] border border-[var(--t-border)] rounded-xl shadow-xl overflow-hidden">
           {filteredSlash.map((c, i) => (
             <button
               key={c.cmd}
               type="button"
               onMouseDown={(e) => { e.preventDefault(); c.action(); }}
               className={`w-full flex items-center gap-3 px-3 py-2 text-left transition-colors ${
-                i === slashIndex ? "bg-indigo-500/20 text-zinc-100" : "text-zinc-300 hover:bg-white/5"
+                i === slashIndex ? "bg-[var(--t-accent)]/20 text-zinc-100" : "text-zinc-300 hover:bg-white/5"
               }`}
             >
-              <span className="text-sm font-mono font-semibold text-indigo-400 w-24 shrink-0">{c.cmd}</span>
+              <span className="text-sm font-mono font-semibold text-[var(--t-accent)] w-24 shrink-0">{c.cmd}</span>
               <span className="text-xs text-zinc-500">{c.desc}</span>
             </button>
           ))}
@@ -337,7 +337,7 @@ export function MessageComposer({
 
       {/* @mention dropdown */}
       {mentionQuery !== null && filteredMembers.length > 0 && (
-        <div className="mb-1 bg-zinc-800 border border-white/10 rounded-xl shadow-xl overflow-hidden">
+        <div className="mb-1 bg-[var(--t-raised)] border border-[var(--t-border)] rounded-xl shadow-xl overflow-hidden">
           {filteredMembers.slice(0, 6).map((m, i) => {
             const initials = m.full_name.slice(0, 2).toUpperCase();
             return (
@@ -346,10 +346,10 @@ export function MessageComposer({
                 type="button"
                 onMouseDown={(e) => { e.preventDefault(); insertMention(m); }}
                 className={`w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors ${
-                  i === mentionIndex ? "bg-indigo-500/20 text-zinc-100" : "text-zinc-300 hover:bg-white/5"
+                  i === mentionIndex ? "bg-[var(--t-accent)]/20 text-zinc-100" : "text-zinc-300 hover:bg-white/5"
                 }`}
               >
-                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center text-[9px] font-semibold text-indigo-400 shrink-0 overflow-hidden">
+                <div className="w-6 h-6 rounded-full bg-[var(--t-accent)]/15 border border-[var(--t-border)] flex items-center justify-center text-[9px] font-semibold text-[var(--t-accent)] shrink-0 overflow-hidden">
                   {m.avatar_url ? <img src={m.avatar_url} alt={m.full_name} className="w-full h-full object-cover" /> : initials}
                 </div>
                 <span className="text-sm font-medium">{m.full_name}</span>
@@ -359,7 +359,7 @@ export function MessageComposer({
         </div>
       )}
 
-      <div className="flex items-end gap-2 bg-black/40 backdrop-blur-md border border-white/10 rounded-xl p-1 shadow-inner focus-within:border-white/20 focus-within:bg-black/60 transition-colors">
+      <div className="flex items-end gap-2 bg-[var(--t-surface)]/80 backdrop-blur-md border border-[var(--t-border)] rounded-xl p-1 shadow-inner focus-within:border-[var(--t-accent)]/40 focus-within:bg-[var(--t-surface)]/90 transition-colors">
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
@@ -373,7 +373,7 @@ export function MessageComposer({
             type="button"
             onClick={suggestDraft}
             disabled={draftLoading}
-            className="p-2 mb-0.5 rounded-lg text-zinc-500 hover:text-indigo-400 hover:bg-indigo-500/10 disabled:opacity-30 transition-colors shrink-0"
+            className="p-2 mb-0.5 rounded-lg text-zinc-500 hover:text-[var(--t-accent)] hover:bg-[var(--t-accent)]/10 disabled:opacity-30 transition-colors shrink-0"
             title="Suggest a reply with AI"
           >
             {draftLoading ? <Loader2 className="w-[16px] h-[16px] animate-spin" /> : <Sparkles className="w-[16px] h-[16px]" />}

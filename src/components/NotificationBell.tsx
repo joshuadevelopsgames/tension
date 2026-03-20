@@ -87,7 +87,7 @@ export function NotificationBell({ currentUserId }: { currentUserId: string }) {
   }
 
   const typeColors: Record<string, string> = {
-    mention: "bg-indigo-500",
+    mention: "bg-[var(--t-accent)]",
     reply: "bg-emerald-500",
     dm: "bg-amber-500",
   };
@@ -101,18 +101,18 @@ export function NotificationBell({ currentUserId }: { currentUserId: string }) {
       >
         <Bell className="w-4 h-4" />
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-indigo-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+          <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[var(--t-accent)] text-white text-[9px] font-bold rounded-full flex items-center justify-center">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 bg-zinc-900 border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
+        <div className="absolute right-0 top-full mt-2 w-80 bg-[var(--t-raised)] border border-[var(--t-border)] rounded-xl shadow-2xl z-50 overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--t-border)]">
             <span className="text-xs font-semibold text-zinc-300">Notifications</span>
             {unreadCount > 0 && (
-              <button onClick={markAllRead} className="text-[11px] text-indigo-400 hover:text-indigo-300 transition-colors">
+              <button onClick={markAllRead} className="text-[11px] text-[var(--t-accent)] hover:text-[var(--t-accent)]/80 transition-colors">
                 Mark all read
               </button>
             )}
@@ -123,7 +123,7 @@ export function NotificationBell({ currentUserId }: { currentUserId: string }) {
             ) : (
               <ul>
                 {notifications.map((n) => (
-                  <li key={n.id} className={`border-b border-white/5 last:border-0 ${!n.read ? "bg-white/[0.02]" : ""}`}>
+                  <li key={n.id} className={`border-b border-[var(--t-border)] last:border-0 ${!n.read ? "bg-white/[0.02]" : ""}`}>
                     <Link
                       href={getLink(n)}
                       onClick={() => { markRead(n.id); setOpen(false); }}

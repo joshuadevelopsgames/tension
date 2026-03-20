@@ -57,6 +57,16 @@
   --t-border:   rgba(34,197,94,0.12);
 }
 
+[data-theme="crimson"] {
+  --t-surface:  #050505;
+  --t-sidebar:  #0e0e0e;
+  --t-header:   #111111;
+  --t-raised:   #1a1111;
+  --t-card:     rgba(220,38,38,0.04);
+  --t-accent:   #dc2626;
+  --t-border:   rgba(220,38,38,0.12);
+}
+
 /* Terminal theme — swap entire app to monospace */
 [data-theme="terminal"],
 [data-theme="terminal"] * {

@@ -262,10 +262,10 @@ function SidebarContent({
                       }`}
                     >
                       <div className="relative shrink-0">
-                        <div className={`w-5 h-5 rounded-full border border-white/10 flex items-center justify-center text-[9px] font-semibold overflow-hidden ${
+                        <div className={`w-5 h-5 rounded-full border border-[var(--t-border)] flex items-center justify-center text-[9px] font-semibold overflow-hidden ${
                           isAI
-                            ? "bg-gradient-to-br from-indigo-600 to-violet-600 text-white"
-                            : "bg-gradient-to-br from-indigo-500/20 to-purple-500/20 text-indigo-400"
+                            ? "bg-[var(--t-accent)] text-white"
+                            : "bg-[var(--t-accent)]/20 text-[var(--t-accent)]"
                         }`}>
                           {isAI ? (
                             <Sparkles className="w-2.5 h-2.5" />
@@ -276,7 +276,7 @@ function SidebarContent({
                           )}
                         </div>
                         {isOnline && (
-                          <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 border border-zinc-900 animate-presence" />
+                          <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 border border-[var(--t-surface)] animate-presence" />
                         )}
                       </div>
                       <span className="flex-1 truncate">{dm.otherUserName}</span>
@@ -336,9 +336,9 @@ function SidebarContent({
             <div className="relative mt-1">
               {/* Status picker popover */}
               {statusPickerOpen && (
-                <div className="absolute bottom-full left-0 mb-2 w-52 bg-zinc-900/80 backdrop-blur-xl border border-white/[0.08] rounded-xl z-50" style={{boxShadow:'0px 24px 48px rgba(0,0,0,0.5)'}}>
+                <div className="absolute bottom-full left-0 mb-2 w-52 bg-[var(--t-raised)]/90 backdrop-blur-xl border border-[var(--t-border)] rounded-xl z-50" style={{boxShadow:'0px 24px 48px rgba(0,0,0,0.5)'}}>
                   {/* Custom status */}
-                  <div className="p-2 border-b border-white/5">
+                  <div className="p-2 border-b border-[var(--t-border)]">
                     <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider px-1 mb-1.5">Custom Status</p>
                     <div className="flex items-center gap-1.5">
                       {/* Emoji picker button */}
@@ -346,12 +346,12 @@ function SidebarContent({
                         <button
                           type="button"
                           onClick={() => setEmojiPickerOpen((o) => !o)}
-                          className={`w-9 h-9 flex items-center justify-center rounded-md border text-lg transition-colors ${emojiPickerOpen ? "border-indigo-500/50 bg-indigo-500/10" : "border-white/10 bg-black/30 hover:border-white/20"}`}
+                          className={`w-9 h-9 flex items-center justify-center rounded-md border text-lg transition-colors ${emojiPickerOpen ? "border-[var(--t-accent)]/50 bg-[var(--t-accent)]/10" : "border-[var(--t-border)] bg-[var(--t-surface)]/60 hover:border-[var(--t-accent)]/30"}`}
                         >
                           {customStatusEmoji || "😊"}
                         </button>
                         {emojiPickerOpen && (
-                          <div className="absolute top-full left-0 mt-1 bg-zinc-900/80 backdrop-blur-xl border border-white/[0.08] rounded-xl p-2 grid grid-cols-6 gap-0.5 z-[9999] w-48 max-h-48 overflow-y-auto" style={{boxShadow:'0px 24px 48px rgba(0,0,0,0.5)'}}>
+                          <div className="absolute top-full left-0 mt-1 bg-[var(--t-raised)]/90 backdrop-blur-xl border border-[var(--t-border)] rounded-xl p-2 grid grid-cols-6 gap-0.5 z-[9999] w-48 max-h-48 overflow-y-auto" style={{boxShadow:'0px 24px 48px rgba(0,0,0,0.5)'}}>
                             {["😊","😄","😂","😅","🤔","🤩","😎","🥳","😴","🤒","😤","🥹",
                               "🔥","✅","🚀","💯","👀","💡","⚡","🎯","📌","⚠️","🏆","✨",
                               "👍","👎","❤️","🎉","💪","🫡","🙏","💀","🤝","👋","🫶","🎊",
@@ -372,7 +372,7 @@ function SidebarContent({
                         value={customStatusMessage}
                         onChange={(e) => setCustomStatusMessage(e.target.value)}
                         placeholder="What are you up to?"
-                        className="flex-1 bg-black/30 border border-white/10 rounded-md px-2 py-1.5 text-xs text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/50"
+                        className="flex-1 bg-[var(--t-surface)]/60 border border-[var(--t-border)] rounded-md px-2 py-1.5 text-xs text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-[var(--t-accent)]/50"
                       />
                     </div>
                     {/* Duration picker */}
@@ -382,7 +382,7 @@ function SidebarContent({
                           key={mins ?? "forever"}
                           type="button"
                           onClick={() => setStatusDuration(mins)}
-                          className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors ${statusDuration === mins ? "bg-indigo-600 text-white" : "bg-white/5 text-zinc-500 hover:bg-white/10 hover:text-zinc-300"}`}
+                          className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors ${statusDuration === mins ? "bg-[var(--t-accent)] text-white" : "bg-white/5 text-zinc-500 hover:bg-white/10 hover:text-zinc-300"}`}
                         >
                           {mins === null ? "Forever" : mins < 60 ? `${mins}m` : `${mins / 60}h`}
                         </button>
@@ -400,7 +400,7 @@ function SidebarContent({
                         }
                         setStatusPickerOpen(false);
                       }}
-                      className="mt-1.5 w-full py-1 bg-indigo-600/80 hover:bg-indigo-600 text-white text-[11px] font-medium rounded-md transition-colors"
+                      className="mt-1.5 w-full py-1 bg-[var(--t-accent)]/80 hover:bg-[var(--t-accent)] text-white text-[11px] font-medium rounded-md transition-colors"
                     >
                       Set Status
                     </button>
@@ -420,7 +420,7 @@ function SidebarContent({
                       >
                         <span className={`w-2 h-2 rounded-full shrink-0 ${opt.color}`} />
                         {opt.label}
-                        {myProfile?.status === opt.value && <span className="ml-auto text-indigo-400">✓</span>}
+                        {myProfile?.status === opt.value && <span className="ml-auto text-[var(--t-accent)]">✓</span>}
                       </button>
                     ))}
                   </div>
@@ -434,14 +434,14 @@ function SidebarContent({
                   className="flex-1 flex items-center gap-3 px-2 py-2.5 rounded-xl hover:bg-white/5 transition-colors"
                 >
                   <div className="relative shrink-0">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500/30 to-purple-500/30 border border-white/10 flex items-center justify-center text-xs font-semibold text-indigo-300 overflow-hidden">
+                    <div className="w-8 h-8 rounded-full bg-[var(--t-accent)]/25 border border-[var(--t-border)] flex items-center justify-center text-xs font-semibold text-[var(--t-accent)] overflow-hidden">
                       {myProfile?.avatar_url ? (
                         <img src={myProfile.avatar_url} alt={myProfile.full_name ?? ""} className="w-full h-full object-cover" />
                       ) : (
                         (myProfile?.full_name ?? currentUserId).slice(0, 2).toUpperCase()
                       )}
                     </div>
-                    <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-zinc-900 ${statusColors[myProfile?.status ?? "offline"] ?? "bg-zinc-500"}`} />
+                    <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[var(--t-sidebar)] ${statusColors[myProfile?.status ?? "offline"] ?? "bg-zinc-500"}`} />
                   </div>
                   <div className="flex-1 min-w-0 text-left">
                     <p className="text-xs font-semibold text-zinc-200 truncate leading-tight">
@@ -463,7 +463,7 @@ function SidebarContent({
                     <Settings className="w-3.5 h-3.5" />
                   </button>
                   {settingsMenuOpen && (
-                    <div className="absolute bottom-full right-0 mb-2 w-44 bg-zinc-900/80 backdrop-blur-xl border border-white/[0.08] rounded-xl overflow-hidden z-50" style={{boxShadow:'0px 24px 48px rgba(0,0,0,0.5)'}}>
+                    <div className="absolute bottom-full right-0 mb-2 w-44 bg-[var(--t-raised)]/90 backdrop-blur-xl border border-[var(--t-border)] rounded-xl overflow-hidden z-50" style={{boxShadow:'0px 24px 48px rgba(0,0,0,0.5)'}}>
                       <button
                         onClick={() => { setSettingsMenuOpen(false); setProfileOpen(true); }}
                         className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-zinc-300 hover:bg-white/5 hover:text-white transition-colors"

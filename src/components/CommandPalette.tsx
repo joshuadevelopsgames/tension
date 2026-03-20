@@ -109,14 +109,14 @@ export function CommandPalette({
   return (
     <ModalPortal>
     <div className="fixed inset-0 z-[200] flex items-start justify-center pt-[15vh] pb-[15vh]">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setOpen(false)} />
-      <div className="relative w-full max-w-lg bg-neutral-900/90 border border-white/10 rounded-xl shadow-2xl backdrop-blur-3xl overflow-hidden flex flex-col max-h-full">
+      <div className="absolute inset-0 bg-[var(--t-surface)]/80 backdrop-blur-sm" onClick={() => setOpen(false)} />
+      <div className="relative w-full max-w-lg bg-[var(--t-raised)]/90 border border-[var(--t-border)] rounded-xl shadow-2xl backdrop-blur-3xl overflow-hidden flex flex-col max-h-full">
         <Command
           className="flex flex-col flex-1 min-h-0"
           shouldFilter={false}
           onKeyDown={(e) => { if (e.key === "Escape") setOpen(false); }}
         >
-          <div className="flex items-center px-4 border-b border-white/10" cmdk-input-wrapper="">
+          <div className="flex items-center px-4 border-b border-[var(--t-border)]" cmdk-input-wrapper="">
             {searching ? (
               <Loader2 className="w-4 h-4 text-zinc-500 mr-2 shrink-0 animate-spin" />
             ) : (
@@ -152,7 +152,7 @@ export function CommandPalette({
                     key={ch.id}
                     value={`channel-${ch.id}`}
                     onSelect={() => { router.push(`/channel?id=${ch.id}`); setOpen(false); }}
-                    className="flex items-center px-2 py-2.5 rounded-md cursor-pointer text-zinc-300 text-sm aria-selected:bg-indigo-500 aria-selected:text-white"
+                    className="flex items-center px-2 py-2.5 rounded-md cursor-pointer text-zinc-300 text-sm aria-selected:bg-[var(--t-accent)] aria-selected:text-white"
                   >
                     <Hash className="w-4 h-4 mr-2 opacity-70 shrink-0" />
                     {ch.name}
@@ -169,12 +169,12 @@ export function CommandPalette({
                     key={msg.id}
                     value={`msg-${msg.id}`}
                     onSelect={() => navigateToMessage(msg)}
-                    className="flex items-start gap-2 px-2 py-2.5 rounded-md cursor-pointer text-zinc-300 text-sm aria-selected:bg-indigo-500 aria-selected:text-white"
+                    className="flex items-start gap-2 px-2 py-2.5 rounded-md cursor-pointer text-zinc-300 text-sm aria-selected:bg-[var(--t-accent)] aria-selected:text-white"
                   >
                     <MessageSquare className="w-4 h-4 mr-1 opacity-70 shrink-0 mt-0.5" />
                     <div className="flex-1 min-w-0">
                       {msg.channel_name && (
-                        <span className="text-[10px] font-medium text-zinc-500 aria-selected:text-indigo-200 block mb-0.5">
+                        <span className="text-[10px] font-medium text-zinc-500 aria-selected:text-[var(--t-accent)]/80 block mb-0.5">
                           #{msg.channel_name}
                         </span>
                       )}

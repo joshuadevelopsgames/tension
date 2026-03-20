@@ -69,14 +69,14 @@ export function ChannelSettingsModal({
   return (
     <ModalPortal>
       <div
-        className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+        className="fixed inset-0 z-[200] flex items-center justify-center bg-[var(--t-surface)]/80 backdrop-blur-sm p-4"
         onClick={onClose}
       >
         <div
-          className="bg-zinc-900 border border-white/10 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden"
+          className="bg-[var(--t-raised)] border border-[var(--t-border)] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between p-4 border-b border-white/5">
+          <div className="flex items-center justify-between p-4 border-b border-[var(--t-border)]">
             <h2 className="text-sm font-semibold text-white">Channel Settings</h2>
             <button onClick={onClose} className="p-1 hover:bg-white/10 rounded-md text-zinc-400 hover:text-white transition-colors">
               <X className="w-4 h-4" />
@@ -89,7 +89,7 @@ export function ChannelSettingsModal({
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/50"
+                className="w-full bg-[var(--t-surface)]/60 border border-[var(--t-border)] rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-[var(--t-accent)]/50"
                 placeholder="channel-name"
               />
             </div>
@@ -99,7 +99,7 @@ export function ChannelSettingsModal({
               <input
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
-                className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/50"
+                className="w-full bg-[var(--t-surface)]/60 border border-[var(--t-border)] rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-[var(--t-accent)]/50"
                 placeholder="What's this channel about?"
               />
             </div>
@@ -110,7 +110,7 @@ export function ChannelSettingsModal({
                 <input
                   value={clientTag}
                   onChange={(e) => setClientTag(e.target.value)}
-                  className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/50"
+                  className="w-full bg-[var(--t-surface)]/60 border border-[var(--t-border)] rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-[var(--t-accent)]/50"
                   placeholder="acme-corp"
                 />
               </div>
@@ -119,7 +119,7 @@ export function ChannelSettingsModal({
                 <input
                   value={campaignTag}
                   onChange={(e) => setCampaignTag(e.target.value)}
-                  className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/50"
+                  className="w-full bg-[var(--t-surface)]/60 border border-[var(--t-border)] rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-[var(--t-accent)]/50"
                   placeholder="q2-brand"
                 />
               </div>
@@ -128,20 +128,20 @@ export function ChannelSettingsModal({
             <button
               onClick={handleSave}
               disabled={saving || !name.trim()}
-              className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+              className="w-full py-2 bg-[var(--t-accent)] hover:bg-[var(--t-accent)]/80 disabled:opacity-40 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
             >
               {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
               Save Changes
             </button>
 
-            <div className="border-t border-white/5 pt-3">
+            <div className="border-t border-[var(--t-border)] pt-3">
               {archiveConfirm ? (
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-zinc-400 flex-1">Archive this channel?</span>
                   <button onClick={handleArchive} className="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white text-xs font-medium rounded-lg transition-colors">
                     Yes, archive
                   </button>
-                  <button onClick={() => setArchiveConfirm(false)} className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium rounded-lg transition-colors">
+                  <button onClick={() => setArchiveConfirm(false)} className="px-3 py-1.5 bg-[var(--t-raised)] hover:bg-[var(--t-raised)]/80 text-zinc-300 text-xs font-medium rounded-lg transition-colors">
                     Cancel
                   </button>
                 </div>

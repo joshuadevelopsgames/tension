@@ -24,6 +24,11 @@ export const THEMES = {
     description: "Monospace. Pure black. Green.",
     swatches: ["#000000", "#0a0a0a", "#22c55e"],
   },
+  crimson: {
+    name: "Crimson Onyx",
+    description: "Pure black with surgical crimson",
+    swatches: ["#050505", "#0e0e0e", "#dc2626"],
+  },
 } as const;
 
 export type ThemeId = keyof typeof THEMES;

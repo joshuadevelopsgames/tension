@@ -46,13 +46,13 @@ export function LinkPreview({ body }: { body: string }) {
       href={url!}
       target="_blank"
       rel="noopener noreferrer"
-      className="mt-2 flex items-start gap-3 max-w-sm bg-zinc-900/60 border border-white/10 rounded-xl p-3 hover:bg-zinc-800/60 transition-colors group overflow-hidden no-underline block"
+      className="mt-2 flex items-start gap-3 max-w-sm bg-[var(--t-raised)]/60 border border-[var(--t-border)] rounded-xl p-3 hover:bg-[var(--t-raised)]/80 transition-colors group overflow-hidden no-underline block"
     >
       {og.image && (
         <img
           src={og.image}
           alt=""
-          className="w-16 h-16 object-cover rounded-lg shrink-0 bg-zinc-800"
+          className="w-16 h-16 object-cover rounded-lg shrink-0 bg-[var(--t-raised)]"
           onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
         />
       )}
