@@ -126,9 +126,9 @@ export function ProfileModal({
   return (
     <ModalPortal>
     <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div 
-        className="bg-zinc-900 border border-white/10 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col"
-        style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', Inter, 'Helvetica Neue', Arial, sans-serif" }}
+      <div
+        className="bg-zinc-900/90 backdrop-blur-xl border border-white/[0.08] rounded-2xl w-full max-w-md overflow-hidden flex flex-col"
+        style={{ boxShadow:'0px 24px 48px rgba(0,0,0,0.6)', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', Inter, 'Helvetica Neue', Arial, sans-serif" }}
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/5">

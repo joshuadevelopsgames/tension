@@ -183,19 +183,26 @@ function SidebarContent({
             {allChannels.map((ch) => {
               const count = unreadCounts[ch.id] ?? 0;
               const active = recentlyActive.has(ch.id);
+              const isCurrent = ch.id === activeChannelId;
               return (
                 <li key={ch.id}>
                   <Link
                     href={`/channel?id=${ch.id}`}
-                    className={`flex items-center gap-2 px-2 py-1.5 rounded-md text-sm font-medium hover:bg-white/10 transition-colors ${count > 0 ? "text-zinc-100" : "text-zinc-400 hover:text-zinc-100"}`}
+                    className={`flex items-center gap-2 py-1.5 rounded-r-md text-sm font-medium transition-colors border-l-2 pl-[6px] pr-2 ${
+                      isCurrent
+                        ? "border-teal-400 text-white bg-white/5"
+                        : count > 0
+                        ? "border-transparent text-zinc-100 hover:bg-white/5"
+                        : "border-transparent text-zinc-400 hover:text-zinc-100 hover:bg-white/5"
+                    }`}
                   >
                     <span className="text-zinc-600 font-normal">#</span>
                     <span className="flex-1 truncate">{ch.name}</span>
                     {active && count === 0 && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-orb shrink-0" title="Active" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-orb shrink-0" title="Active" />
                     )}
                     {count > 0 && (
-                      <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-indigo-500 text-[10px] font-bold text-white flex items-center justify-center leading-none">
+                      <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-teal-500/80 text-[10px] font-bold text-white flex items-center justify-center leading-none">
                         {count > 99 ? "99+" : count}
                       </span>
                     )}
@@ -237,7 +244,13 @@ function SidebarContent({
                   <li key={dm.id}>
                     <Link
                       href={`/dm?id=${dm.id}`}
-                      className={`flex items-center gap-2 px-2 py-1.5 rounded-md text-sm font-medium hover:bg-white/10 transition-colors ${count > 0 ? "text-zinc-100" : "text-zinc-400 hover:text-zinc-100"}`}
+                      className={`flex items-center gap-2 py-1.5 rounded-r-md text-sm font-medium transition-colors border-l-2 pl-[6px] pr-2 ${
+                        dm.id === activeDmId
+                          ? "border-teal-400 text-white bg-white/5"
+                          : count > 0
+                          ? "border-transparent text-zinc-100 hover:bg-white/5"
+                          : "border-transparent text-zinc-400 hover:text-zinc-100 hover:bg-white/5"
+                      }`}
                     >
                       <div className="relative shrink-0">
                         <div className={`w-5 h-5 rounded-full border border-white/10 flex items-center justify-center text-[9px] font-semibold overflow-hidden ${
@@ -259,10 +272,10 @@ function SidebarContent({
                       </div>
                       <span className="flex-1 truncate">{dm.otherUserName}</span>
                       {active && count === 0 && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-orb shrink-0" title="Active" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-orb shrink-0" title="Active" />
                       )}
                       {count > 0 && (
-                        <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-indigo-500 text-[10px] font-bold text-white flex items-center justify-center leading-none">
+                        <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-teal-500/80 text-[10px] font-bold text-white flex items-center justify-center leading-none">
                           {count > 99 ? "99+" : count}
                         </span>
                       )}
@@ -275,7 +288,7 @@ function SidebarContent({
         </div>
       </nav>
 
-      <div className="p-3 border-t border-white/5 space-y-2">
+      <div className="p-3 space-y-2">
         <button
           onClick={() => document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true }))}
           className="w-full flex items-center justify-between px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/5 rounded-lg text-xs font-medium text-zinc-300 transition-colors"
@@ -314,7 +327,7 @@ function SidebarContent({
             <div className="relative mt-1">
               {/* Status picker popover */}
               {statusPickerOpen && (
-                <div className="absolute bottom-full left-0 mb-2 w-52 bg-zinc-800 border border-white/10 rounded-xl shadow-2xl z-50">
+                <div className="absolute bottom-full left-0 mb-2 w-52 bg-zinc-900/80 backdrop-blur-xl border border-white/[0.08] rounded-xl z-50" style={{boxShadow:'0px 24px 48px rgba(0,0,0,0.5)'}}>
                   {/* Custom status */}
                   <div className="p-2 border-b border-white/5">
                     <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider px-1 mb-1.5">Custom Status</p>
@@ -329,7 +342,7 @@ function SidebarContent({
                           {customStatusEmoji || "😊"}
                         </button>
                         {emojiPickerOpen && (
-                          <div className="absolute top-full left-0 mt-1 bg-zinc-800 border border-white/10 rounded-xl p-2 shadow-2xl grid grid-cols-6 gap-0.5 z-[9999] w-48 max-h-48 overflow-y-auto">
+                          <div className="absolute top-full left-0 mt-1 bg-zinc-900/80 backdrop-blur-xl border border-white/[0.08] rounded-xl p-2 grid grid-cols-6 gap-0.5 z-[9999] w-48 max-h-48 overflow-y-auto" style={{boxShadow:'0px 24px 48px rgba(0,0,0,0.5)'}}>
                             {["😊","😄","😂","😅","🤔","🤩","😎","🥳","😴","🤒","😤","🥹",
                               "🔥","✅","🚀","💯","👀","💡","⚡","🎯","📌","⚠️","🏆","✨",
                               "👍","👎","❤️","🎉","💪","🫡","🙏","💀","🤝","👋","🫶","🎊",
@@ -441,7 +454,7 @@ function SidebarContent({
                     <Settings className="w-3.5 h-3.5" />
                   </button>
                   {settingsMenuOpen && (
-                    <div className="absolute bottom-full right-0 mb-2 w-44 bg-zinc-800 border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
+                    <div className="absolute bottom-full right-0 mb-2 w-44 bg-zinc-900/80 backdrop-blur-xl border border-white/[0.08] rounded-xl overflow-hidden z-50" style={{boxShadow:'0px 24px 48px rgba(0,0,0,0.5)'}}>
                       <button
                         onClick={() => { setSettingsMenuOpen(false); setProfileOpen(true); }}
                         className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-zinc-300 hover:bg-white/5 hover:text-white transition-colors"
@@ -516,11 +529,11 @@ export function AppShell({
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   return (
-    <div className="flex flex-col h-screen text-zinc-200 overflow-hidden font-sans border border-white/10 shadow-2xl bg-zinc-950 rounded-xl">
-      {/* Top Header Bar */}
+    <div className="flex flex-col h-screen text-zinc-200 overflow-hidden font-sans border border-white/[0.06] shadow-2xl bg-[#0e0e0e] rounded-xl">
+      {/* Top Header Bar — no border, tonal shift only */}
       <div
         onPointerDown={startWindowDrag}
-        className="h-10 w-full shrink-0 border-b border-white/5 bg-zinc-900 flex items-center px-4 select-none cursor-grab active:cursor-grabbing z-50 relative"
+        className="h-10 w-full shrink-0 bg-[#131313] flex items-center px-4 select-none cursor-grab active:cursor-grabbing z-50 relative"
       >
         <div className="pl-16 text-[11px] font-medium text-zinc-500 tracking-wide">Tension</div>
         <div className="ml-auto flex items-center gap-1">
@@ -529,8 +542,8 @@ export function AppShell({
       </div>
 
       <div className="flex flex-1 overflow-hidden relative z-20">
-        <aside className="w-64 flex flex-col border-r border-white/5 bg-zinc-900 relative z-20">
-          <div className="h-12 flex items-center px-4 border-b border-white/5 shrink-0 select-none">
+        <aside className="w-64 flex flex-col bg-[#111111] relative z-20">
+          <div className="h-12 flex items-center px-4 shrink-0 select-none">
             <h1 className="font-semibold text-zinc-100 text-sm truncate">{workspaceName}</h1>
           </div>
           <Suspense fallback={null}>
@@ -545,7 +558,7 @@ export function AppShell({
             />
           </Suspense>
         </aside>
-        <main className="flex-1 flex flex-col min-w-0 bg-zinc-950 relative">
+        <main className="flex-1 flex flex-col min-w-0 bg-[#0e0e0e] relative">
           <div className="flex-1 overflow-hidden flex flex-col relative z-20">
             {children}
           </div>
