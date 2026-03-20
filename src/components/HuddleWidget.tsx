@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import { createPortal } from "react-dom";
 import {
   LiveKitRoom,
   GridLayout,
@@ -174,7 +175,10 @@ function SessionInner({
   const startPos = useRef({ mx: 0, my: 0, ex: 0, ey: 0 });
 
   useEffect(() => {
-    if (!isMinimized) return;
+    if (!isMinimized) {
+      posRef.current = { x: 0, y: 0 };
+      return;
+    }
     const el = dragRef.current;
     if (!el) return;
     const pw = window.innerWidth;
@@ -223,31 +227,30 @@ function SessionInner({
     </div>
   );
 
-  // ── Minimised PiP ──────────────────────────────────────────────────────────
-  if (isMinimized) {
-    return (
-      <div
-        ref={dragRef}
-        onMouseDown={onMouseDown}
-        className="fixed top-0 left-0 z-[9000] flex flex-col rounded-2xl overflow-hidden select-none cursor-grab active:cursor-grabbing"
-        style={{
-          width: 280,
-          height: 240,
-          background: "var(--t-raised)",
-          border: "1px solid var(--t-border)",
-          boxShadow: "0 24px 64px rgba(0,0,0,0.7)",
-        }}
-      >
-        {Header}
-        <VideoGrid compact />
-        <Controls onEnd={onEnd} onToggleSize={onToggleSize} isExpanded={false} />
-      </div>
-    );
-  }
-
-  // ── Expanded full-screen overlay ───────────────────────────────────────────
-  return (
+  // Portal to document.body so `position:fixed` is always viewport-relative.
+  // A parent with `transform` (PiP drag) creates a containing block and would
+  // trap the “fullscreen” overlay in the corner after toggling PiP off.
+  const ui = isMinimized ? (
     <div
+      key="pip"
+      ref={dragRef}
+      onMouseDown={onMouseDown}
+      className="fixed top-0 left-0 z-[9000] flex flex-col rounded-2xl overflow-hidden select-none cursor-grab active:cursor-grabbing"
+      style={{
+        width: 280,
+        height: 240,
+        background: "var(--t-raised)",
+        border: "1px solid var(--t-border)",
+        boxShadow: "0 24px 64px rgba(0,0,0,0.7)",
+      }}
+    >
+      {Header}
+      <VideoGrid compact />
+      <Controls onEnd={onEnd} onToggleSize={onToggleSize} isExpanded={false} />
+    </div>
+  ) : (
+    <div
+      key="full"
       className="fixed inset-0 z-[9000] flex flex-col"
       style={{ background: "var(--t-surface)" }}
     >
@@ -256,6 +259,8 @@ function SessionInner({
       <Controls onEnd={onEnd} onToggleSize={onToggleSize} isExpanded />
     </div>
   );
+
+  return createPortal(ui, document.body);
 }
 
 // ── Root export — renders nothing when no active call ────────────────────────
