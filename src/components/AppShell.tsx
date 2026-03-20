@@ -558,7 +558,7 @@ export function AppShell({
           <button
             onPointerDown={(e) => e.stopPropagation()}
             onClick={() => document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true }))}
-            className="flex items-center gap-2 w-72 px-3 py-1.5 bg-[var(--t-surface)]/60 hover:bg-[var(--t-surface)]/90 border border-[var(--t-border)] rounded-lg text-xs text-zinc-500 hover:text-zinc-400 transition-colors"
+            className="flex items-center gap-2 w-[54rem] px-3 py-1.5 bg-[var(--t-surface)]/60 hover:bg-[var(--t-surface)]/90 border border-[var(--t-border)] rounded-lg text-xs text-zinc-500 hover:text-zinc-400 transition-colors"
           >
             <Search className="w-3.5 h-3.5 shrink-0" />
             <span className="flex-1 text-left">Search…</span>
