@@ -123,7 +123,7 @@ function ExpandedOverlay({ onMinimize, onEnd }: { onMinimize: () => void; onEnd:
       >
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-xs font-semibold" style={{ color: "var(--t-fg)" }}>Huddle</span>
+          <span className="text-xs font-semibold" style={{ color: "var(--t-fg)" }}>Session</span>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -211,7 +211,7 @@ function DraggablePip({ onEnd, onExpand }: { onEnd: () => void; onExpand: () => 
         style={{ borderBottom: "1px solid var(--t-border)", background: "var(--t-sidebar)" }}
       >
         <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-        <span className="text-[10px] font-semibold tracking-wide" style={{ color: "var(--t-accent)" }}>HUDDLE</span>
+        <span className="text-[10px] font-semibold tracking-wide" style={{ color: "var(--t-accent)" }}>SESSION</span>
       </div>
 
       <PipVideoGrid />

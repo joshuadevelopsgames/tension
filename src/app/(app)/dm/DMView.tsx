@@ -361,10 +361,10 @@ export function DMView({
                 ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
                 : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"
             }`}
-            title="Start a huddle"
+            title="Start a session"
           >
             {isConnecting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Headphones className="w-3 h-3" />}
-            Huddle
+            Session
           </button>
         )}
       </header>

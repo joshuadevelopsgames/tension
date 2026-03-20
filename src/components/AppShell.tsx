@@ -9,7 +9,7 @@ import { WorkspaceMembersModal } from "./WorkspaceMembersModal";
 import { NotificationBell } from "./NotificationBell";
 import { startWindowDrag } from "@/lib/tauri";
 import { ProfileModal } from "./ProfileModal";
-import { Bookmark, Plus, Settings, Users, LogOut, Sparkles, Sun, Moon } from "lucide-react";
+import { Bookmark, Plus, Settings, Users, LogOut, Sparkles, Sun, Moon, LayoutTemplate } from "lucide-react";
 import { StatusBar } from "./StatusBar";
 import { useTheme } from "./ThemeProvider";
 import { useState, useEffect, useRef, Suspense } from "react";
@@ -322,6 +322,13 @@ function SidebarContent({
             <Users className="w-4 h-4" />
             <span>Members</span>
           </button>
+          <Link
+            href="/workspaces"
+            className="flex items-center gap-2 px-3 py-2 hover:bg-white/5 rounded-lg text-xs font-medium text-zinc-400 hover:text-zinc-200 transition-colors"
+            title="Workspaces"
+          >
+            <LayoutTemplate className="w-4 h-4" />
+          </Link>
           <Link
             href="/saved"
             className="flex items-center gap-2 px-3 py-2 hover:bg-white/5 rounded-lg text-xs font-medium text-zinc-400 hover:text-zinc-200 transition-colors"
