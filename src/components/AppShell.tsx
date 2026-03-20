@@ -9,7 +9,7 @@ import { WorkspaceMembersModal } from "./WorkspaceMembersModal";
 import { NotificationBell } from "./NotificationBell";
 import { startWindowDrag } from "@/lib/tauri";
 import { ProfileModal } from "./ProfileModal";
-import { Bookmark, Plus, Settings, Users, LogOut, Sparkles, Sun, Moon } from "lucide-react";
+import { Bookmark, Plus, Search, Settings, Users, LogOut, Sparkles, Sun, Moon } from "lucide-react";
 import { StatusBar } from "./StatusBar";
 import { useTheme } from "./ThemeProvider";
 import { useState, useEffect, useRef, Suspense } from "react";
@@ -312,13 +312,6 @@ function SidebarContent({
       </nav>
 
       <div className="p-3 space-y-2">
-        <button
-          onClick={() => document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true }))}
-          className="w-full flex items-center justify-between px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/5 rounded-lg text-xs font-medium text-zinc-300 transition-colors"
-        >
-          <span>Search</span>
-          <span className="px-1.5 py-0.5 rounded bg-black/40 text-zinc-500 font-mono text-[10px]">⌘K</span>
-        </button>
         <div className="flex items-center gap-1">
           <button
             onClick={() => setIsMembersOpen(true)}
@@ -559,6 +552,20 @@ export function AppShell({
         className="h-10 w-full shrink-0 bg-[var(--t-header)] flex items-center px-4 select-none cursor-grab active:cursor-grabbing z-50 relative"
       >
         <div className="pl-16 text-[11px] font-medium text-zinc-500 tracking-wide">Tension</div>
+
+        {/* Search bar — centred in the header */}
+        <div className="absolute left-1/2 -translate-x-1/2">
+          <button
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={() => document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true }))}
+            className="flex items-center gap-2 w-72 px-3 py-1.5 bg-[var(--t-surface)]/60 hover:bg-[var(--t-surface)]/90 border border-[var(--t-border)] rounded-lg text-xs text-zinc-500 hover:text-zinc-400 transition-colors"
+          >
+            <Search className="w-3.5 h-3.5 shrink-0" />
+            <span className="flex-1 text-left">Search…</span>
+            <span className="px-1.5 py-0.5 rounded bg-[var(--t-raised)]/60 text-zinc-600 font-mono text-[10px]">⌘K</span>
+          </button>
+        </div>
+
         <div className="ml-auto flex items-center gap-1">
           <ModeToggle />
           <NotificationBell currentUserId={currentUserId} />
