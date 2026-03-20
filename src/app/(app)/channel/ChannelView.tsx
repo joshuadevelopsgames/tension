@@ -265,7 +265,7 @@ function MessageRow({
 
   if (isGrouped) {
     return (
-      <div className={`flex gap-4 group mt-0.5 bg-white/[0.035] rounded-xl px-4 py-2 relative ${urgentBorder} ${newAnim}`}>
+      <div className={`flex gap-4 group mt-0.5 bg-[var(--t-card)] rounded-xl px-4 py-2 relative ${urgentBorder} ${newAnim}`}>
         <div className="w-8 shrink-0 text-right">
           <span className="text-[10px] font-medium text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap block mt-1">
             {time}
@@ -278,7 +278,7 @@ function MessageRow({
   }
 
   return (
-    <div className={`flex gap-4 group mt-3 bg-white/[0.035] rounded-xl px-4 py-3 relative ${urgentBorder} ${newAnim}`}>
+    <div className={`flex gap-4 group mt-3 bg-[var(--t-card)] rounded-xl px-4 py-3 relative ${urgentBorder} ${newAnim}`}>
       <UserAvatar
         userId={m.sender_id}
         displayName={m.users?.full_name || undefined}

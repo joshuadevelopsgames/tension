@@ -5,6 +5,38 @@
   --foreground: #ededed;
 }
 
+/* ── Tension Theme Tokens ─────────────────────────────────────────────── */
+
+[data-theme="obsidian"] {
+  --t-surface:  #080808;
+  --t-sidebar:  #111111;
+  --t-header:   #161616;
+  --t-raised:   #1c1c1c;
+  --t-card:     rgba(255,255,255,0.03);
+  --t-accent:   #2dd4bf;
+  --t-border:   rgba(255,255,255,0.06);
+}
+
+[data-theme="submerged"] {
+  --t-surface:  #0c1324;
+  --t-sidebar:  #151b2d;
+  --t-header:   #1a2133;
+  --t-raised:   #1e2535;
+  --t-card:     rgba(255,255,255,0.035);
+  --t-accent:   #4edea3;
+  --t-border:   rgba(255,255,255,0.06);
+}
+
+[data-theme="void"] {
+  --t-surface:  #0f0d1a;
+  --t-sidebar:  #1a1628;
+  --t-header:   #201c2e;
+  --t-raised:   #252033;
+  --t-card:     rgba(255,255,255,0.04);
+  --t-accent:   #a78bfa;
+  --t-border:   rgba(255,255,255,0.07);
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

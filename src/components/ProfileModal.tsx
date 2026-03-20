@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Camera, Loader2, X } from "lucide-react";
 import { ModalPortal } from "@/components/ModalPortal";
+import { useTheme } from "@/components/ThemeProvider";
+import { THEMES, type ThemeId } from "@/lib/themes";
 
 const STATUS_EMOJIS = [
   "😊","😄","😂","😅","🤔","🤩","😎","🥳","😴","🤒","😤","🥹",
@@ -11,6 +13,43 @@ const STATUS_EMOJIS = [
   "👍","👎","❤️","🎉","💪","🫡","🙏","💀","🤝","👋","🫶","🎊",
   "☕","🍕","🎸","⚽","🌴","🏖️","🌙","☀️","🌧️","❄️","🌈","🎁",
 ];
+
+function ThemeSelector() {
+  const { theme, setTheme } = useTheme();
+  return (
+    <div className="space-y-2">
+      <label className="text-[11px] font-semibold text-zinc-500 uppercase tracking-widest">Theme</label>
+      <div className="grid grid-cols-3 gap-2">
+        {(Object.entries(THEMES) as [ThemeId, typeof THEMES[ThemeId]][]).map(([id, t]) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setTheme(id)}
+            className={`relative flex flex-col items-start gap-2 p-3 rounded-xl border transition-all ${
+              theme === id
+                ? "border-[var(--t-accent)] bg-white/[0.06]"
+                : "border-white/10 bg-black/20 hover:border-white/20"
+            }`}
+          >
+            {/* Colour swatches */}
+            <div className="flex gap-1">
+              {t.swatches.map((c, i) => (
+                <span key={i} className="w-4 h-4 rounded-full border border-white/10" style={{ background: c }} />
+              ))}
+            </div>
+            <div className="text-left">
+              <p className="text-xs font-semibold text-zinc-200 leading-tight">{t.name}</p>
+              <p className="text-[10px] text-zinc-500 leading-tight mt-0.5">{t.description}</p>
+            </div>
+            {theme === id && (
+              <span className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-[var(--t-accent)]" />
+            )}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export function ProfileModal({
   isOpen,
@@ -264,6 +303,9 @@ export function ProfileModal({
                 </div>
               </div>
             </div>
+
+            {/* Theme selector */}
+            <ThemeSelector />
 
             <div className="pt-4 flex justify-end gap-3 border-t border-white/5">
               <button

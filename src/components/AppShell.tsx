@@ -190,7 +190,7 @@ function SidebarContent({
                     href={`/channel?id=${ch.id}`}
                     className={`flex items-center gap-2 py-1.5 rounded-r-lg text-sm font-medium transition-colors border-l-[3px] pl-2 pr-2 ${
                       isCurrent
-                        ? "border-teal-400 text-white bg-white/[0.08]"
+                        ? "border-[var(--t-accent)] text-white bg-white/[0.08]"
                         : count > 0
                         ? "border-transparent text-zinc-100 hover:bg-white/5"
                         : "border-transparent text-zinc-400 hover:text-zinc-100 hover:bg-white/5"
@@ -199,10 +199,10 @@ function SidebarContent({
                     <span className="text-zinc-600 font-normal">#</span>
                     <span className="flex-1 truncate">{ch.name}</span>
                     {active && count === 0 && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-orb shrink-0" title="Active" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-[var(--t-accent)] animate-orb shrink-0" title="Active" />
                     )}
                     {count > 0 && (
-                      <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-teal-500/80 text-[10px] font-bold text-white flex items-center justify-center leading-none">
+                      <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-[var(--t-accent)]/80 text-[10px] font-bold text-white flex items-center justify-center leading-none">
                         {count > 99 ? "99+" : count}
                       </span>
                     )}
@@ -246,7 +246,7 @@ function SidebarContent({
                       href={`/dm?id=${dm.id}`}
                       className={`flex items-center gap-2 py-1.5 rounded-r-lg text-sm font-medium transition-colors border-l-[3px] pl-2 pr-2 ${
                         dm.id === activeDmId
-                          ? "border-teal-400 text-white bg-white/[0.08]"
+                          ? "border-[var(--t-accent)] text-white bg-white/[0.08]"
                           : count > 0
                           ? "border-transparent text-zinc-100 hover:bg-white/5"
                           : "border-transparent text-zinc-400 hover:text-zinc-100 hover:bg-white/5"
@@ -272,10 +272,10 @@ function SidebarContent({
                       </div>
                       <span className="flex-1 truncate">{dm.otherUserName}</span>
                       {active && count === 0 && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-orb shrink-0" title="Active" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-[var(--t-accent)] animate-orb shrink-0" title="Active" />
                       )}
                       {count > 0 && (
-                        <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-teal-500/80 text-[10px] font-bold text-white flex items-center justify-center leading-none">
+                        <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-[var(--t-accent)]/80 text-[10px] font-bold text-white flex items-center justify-center leading-none">
                           {count > 99 ? "99+" : count}
                         </span>
                       )}
@@ -529,11 +529,11 @@ export function AppShell({
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   return (
-    <div className="flex flex-col h-screen text-zinc-200 overflow-hidden font-sans border border-white/[0.06] shadow-2xl bg-[#0c1324] rounded-xl">
+    <div className="flex flex-col h-screen text-zinc-200 overflow-hidden font-sans border border-[var(--t-border)] shadow-2xl bg-[var(--t-surface)] rounded-xl">
       {/* Top Header Bar — no border, tonal shift only */}
       <div
         onPointerDown={startWindowDrag}
-        className="h-10 w-full shrink-0 bg-[#1a2133] flex items-center px-4 select-none cursor-grab active:cursor-grabbing z-50 relative"
+        className="h-10 w-full shrink-0 bg-[var(--t-header)] flex items-center px-4 select-none cursor-grab active:cursor-grabbing z-50 relative"
       >
         <div className="pl-16 text-[11px] font-medium text-zinc-500 tracking-wide">Tension</div>
         <div className="ml-auto flex items-center gap-1">
@@ -542,7 +542,7 @@ export function AppShell({
       </div>
 
       <div className="flex flex-1 overflow-hidden relative z-20">
-        <aside className="w-64 flex flex-col bg-[#151b2d] relative z-20">
+        <aside className="w-64 flex flex-col bg-[var(--t-sidebar)] relative z-20">
           <div className="h-12 flex items-center px-4 shrink-0 select-none">
             <h1 className="font-semibold text-zinc-100 text-sm truncate">{workspaceName}</h1>
           </div>
@@ -558,7 +558,7 @@ export function AppShell({
             />
           </Suspense>
         </aside>
-        <main className="flex-1 flex flex-col min-w-0 bg-[#0c1324] relative">
+        <main className="flex-1 flex flex-col min-w-0 bg-[var(--t-surface)] relative">
           <div className="flex-1 overflow-hidden flex flex-col relative z-20">
             {children}
           </div>
