@@ -265,7 +265,7 @@ function MessageRow({
 
   if (isGrouped) {
     return (
-      <div className={`flex gap-4 group mt-1 hover:bg-white/[0.02] -mx-4 px-4 py-0.5 rounded-sm relative ${urgentBorder} ${newAnim}`}>
+      <div className={`flex gap-4 group mt-0.5 bg-white/[0.035] rounded-xl px-4 py-2 relative ${urgentBorder} ${newAnim}`}>
         <div className="w-8 shrink-0 text-right">
           <span className="text-[10px] font-medium text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap block mt-1">
             {time}
@@ -278,7 +278,7 @@ function MessageRow({
   }
 
   return (
-    <div className={`flex gap-4 group mt-4 hover:bg-white/[0.02] -mx-4 px-4 py-1 rounded-sm relative ${urgentBorder} ${newAnim}`}>
+    <div className={`flex gap-4 group mt-3 bg-white/[0.035] rounded-xl px-4 py-3 relative ${urgentBorder} ${newAnim}`}>
       <UserAvatar
         userId={m.sender_id}
         displayName={m.users?.full_name || undefined}
@@ -577,6 +577,71 @@ function PinsPanel({
   );
 }
 
+// ─── Details Panel ────────────────────────────────────────────────────────────
+
+function DetailsPanel({
+  channel,
+  pins,
+  memberCount,
+  onClose,
+}: {
+  channel: { id: string; name: string; topic: string | null };
+  pins: PinEntry[];
+  memberCount: number;
+  onClose: () => void;
+}) {
+  return (
+    <div className="w-72 flex flex-col bg-[#0c1324] border-l border-white/[0.06] shrink-0">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
+        <span className="text-xs font-semibold text-zinc-300 tracking-wide">Channel Details</span>
+        <button onClick={onClose} className="p-1 rounded hover:bg-white/10 text-zinc-500 hover:text-zinc-300 transition-colors">
+          <X className="w-3.5 h-3.5" />
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto">
+        {/* Large channel name */}
+        <div className="px-5 pt-6 pb-4 border-b border-white/[0.06]">
+          <p className="text-[10px] font-semibold text-emerald-400/70 uppercase tracking-widest mb-1">Channel</p>
+          <h2 className="text-2xl font-bold text-white tracking-tight leading-tight break-words">
+            #{channel.name}
+          </h2>
+          {channel.topic && (
+            <p className="mt-2 text-xs text-zinc-400 leading-relaxed">{channel.topic}</p>
+          )}
+          {memberCount > 0 && (
+            <p className="mt-3 text-[11px] text-zinc-500">
+              <span className="text-emerald-400 font-semibold">{memberCount}</span> member{memberCount !== 1 ? "s" : ""}
+            </p>
+          )}
+        </div>
+
+        {/* Pinned messages */}
+        <div className="px-4 py-4">
+          <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest mb-3">
+            Pinned{pins.length > 0 ? ` · ${pins.length}` : ""}
+          </p>
+          {pins.length === 0 ? (
+            <p className="text-xs text-zinc-600">No pinned messages yet.</p>
+          ) : (
+            <div className="space-y-2">
+              {pins.map((pin) => (
+                <div key={pin.id} className="bg-white/[0.04] rounded-lg p-3 border-l-2 border-emerald-500/50">
+                  <p className="text-[11px] font-semibold text-zinc-300 mb-1">
+                    {pin.message.users?.full_name || "Unknown"}
+                  </p>
+                  <p className="text-xs text-zinc-400 line-clamp-3 break-words leading-relaxed">{pin.message.body}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Brief Modal ──────────────────────────────────────────────────────────────
 
 function BriefModal({ brief, onClose }: { brief: string; onClose: () => void }) {
@@ -659,6 +724,10 @@ export function ChannelView({
   // Saved
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
 
+  // Details panel
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [memberCount, setMemberCount] = useState(0);
+
   // New message animation tracking
   const [newMessageIds, setNewMessageIds] = useState<Set<string>>(new Set());
 
@@ -712,6 +781,12 @@ export function ChannelView({
         setPins(pinEntries);
         setPinnedIds(new Set(pinEntries.map((p) => p.message.id)));
       });
+
+    supabase
+      .from("workspace_members")
+      .select("user_id", { count: "exact", head: true })
+      .eq("workspace_id", channel.workspace_id)
+      .then(({ count }) => { if (count !== null) setMemberCount(count); });
 
     supabase
       .from("saved_messages")
@@ -956,8 +1031,8 @@ export function ChannelView({
     }
   }
 
-  const rightPanelOpen = !!(threadParent || pinsOpen);
-  const activePanel = threadParent ? "thread" : pinsOpen ? "pins" : null;
+  const rightPanelOpen = !!(threadParent || pinsOpen || detailsOpen);
+  const activePanel = threadParent ? "thread" : pinsOpen ? "pins" : detailsOpen ? "details" : null;
 
   return (
     <>
@@ -967,8 +1042,8 @@ export function ChannelView({
           {/* Channel header */}
           <header className="px-6 py-3 pt-8 flex items-center justify-between shrink-0 border-b border-white/5 select-none">
             <div className="flex items-center gap-3 min-w-0">
-              <h2 className="font-semibold text-zinc-100 uppercase tracking-widest text-[11px] flex items-center gap-1.5 shrink-0">
-                <Hash className="w-3.5 h-3.5 text-zinc-500" /> {channel.name}
+              <h2 className="font-bold text-zinc-100 text-lg tracking-tight flex items-center gap-1.5 shrink-0">
+                <Hash className="w-4 h-4 text-zinc-500" /> {channel.name}
               </h2>
               {channel.topic && <span className="text-zinc-500 text-[11px] font-medium truncate">— {channel.topic}</span>}
             </div>
@@ -1012,6 +1087,16 @@ export function ChannelView({
               >
                 <Pin className="w-3 h-3" />
                 {pins.length > 0 && <span>{pins.length}</span>}
+              </button>
+
+              {/* Details */}
+              <button
+                onClick={() => { setDetailsOpen((o) => !o); setThreadParent(null); setPinsOpen(false); }}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors ${detailsOpen ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"}`}
+                title="Channel details"
+              >
+                <Hash className="w-3 h-3" />
+                Details
               </button>
 
               {/* Settings */}
@@ -1154,6 +1239,14 @@ export function ChannelView({
             onUnpin={handlePin}
             currentUserId={currentUserId}
             onClose={() => setPinsOpen(false)}
+          />
+        )}
+        {activePanel === "details" && (
+          <DetailsPanel
+            channel={channel}
+            pins={pins}
+            memberCount={memberCount}
+            onClose={() => setDetailsOpen(false)}
           />
         )}
       </div>

@@ -529,11 +529,11 @@ export function AppShell({
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   return (
-    <div className="flex flex-col h-screen text-zinc-200 overflow-hidden font-sans border border-white/[0.06] shadow-2xl bg-[#080808] rounded-xl">
+    <div className="flex flex-col h-screen text-zinc-200 overflow-hidden font-sans border border-white/[0.06] shadow-2xl bg-[#0c1324] rounded-xl">
       {/* Top Header Bar — no border, tonal shift only */}
       <div
         onPointerDown={startWindowDrag}
-        className="h-10 w-full shrink-0 bg-[#1a1a1a] flex items-center px-4 select-none cursor-grab active:cursor-grabbing z-50 relative"
+        className="h-10 w-full shrink-0 bg-[#1a2133] flex items-center px-4 select-none cursor-grab active:cursor-grabbing z-50 relative"
       >
         <div className="pl-16 text-[11px] font-medium text-zinc-500 tracking-wide">Tension</div>
         <div className="ml-auto flex items-center gap-1">
@@ -542,7 +542,7 @@ export function AppShell({
       </div>
 
       <div className="flex flex-1 overflow-hidden relative z-20">
-        <aside className="w-64 flex flex-col bg-[#161616] relative z-20">
+        <aside className="w-64 flex flex-col bg-[#151b2d] relative z-20">
           <div className="h-12 flex items-center px-4 shrink-0 select-none">
             <h1 className="font-semibold text-zinc-100 text-sm truncate">{workspaceName}</h1>
           </div>
@@ -558,7 +558,7 @@ export function AppShell({
             />
           </Suspense>
         </aside>
-        <main className="flex-1 flex flex-col min-w-0 bg-[#080808] relative">
+        <main className="flex-1 flex flex-col min-w-0 bg-[#0c1324] relative">
           <div className="flex-1 overflow-hidden flex flex-col relative z-20">
             {children}
           </div>
