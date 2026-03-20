@@ -17,7 +17,7 @@ import "@livekit/components-styles";
 import { Track, ConnectionState } from "livekit-client";
 import {
   Maximize2, Minimize2, Mic, MicOff, Video, VideoOff,
-  PhoneOff, Users, Loader2,
+  PhoneOff, Phone, PhoneIncoming, Users, Loader2,
 } from "lucide-react";
 import { useHuddle } from "@/context/HuddleContext";
 
@@ -264,27 +264,72 @@ function SessionInner({
 }
 
 // ── Root export — renders nothing when no active call ────────────────────────
+function IncomingCallBanner() {
+  const { incomingInvite, acceptIncomingInvite, dismissIncomingInvite } = useHuddle();
+  if (!incomingInvite) return null;
+
+  return createPortal(
+    <div
+      className="fixed bottom-6 right-6 z-[9999] flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl animate-pop-in"
+      style={{ background: "var(--t-raised)", border: "1px solid var(--t-border)", minWidth: 260 }}
+    >
+      <div className="flex items-center justify-center w-9 h-9 rounded-full flex-shrink-0" style={{ background: "color-mix(in srgb, var(--t-accent) 15%, transparent)" }}>
+        <PhoneIncoming className="w-4 h-4" style={{ color: "var(--t-accent)" }} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-semibold truncate" style={{ color: "var(--t-fg)" }}>{incomingInvite.fromName}</p>
+        <p className="text-[11px]" style={{ color: "var(--t-fg-2)" }}>Inviting you to a session</p>
+      </div>
+      <button
+        onClick={acceptIncomingInvite}
+        className="flex items-center justify-center w-8 h-8 rounded-full transition-opacity hover:opacity-80"
+        style={{ background: "var(--t-accent)" }}
+        title="Accept"
+      >
+        <Phone className="w-3.5 h-3.5 text-white" />
+      </button>
+      <button
+        onClick={dismissIncomingInvite}
+        className="flex items-center justify-center w-8 h-8 rounded-full transition-colors hover:bg-white/10"
+        style={{ color: "var(--t-fg-2)" }}
+        title="Dismiss"
+      >
+        <PhoneOff className="w-3.5 h-3.5" />
+      </button>
+    </div>,
+    document.body
+  );
+}
+
 export function HuddleWidget() {
   const { roomName, token, isMinimized, endHuddle, toggleMinimize } = useHuddle();
 
-  if (!roomName || !token) return null;
+  const roomHostClass = isMinimized
+    ? "!fixed !top-0 !left-0 !h-0 !min-h-0 !w-0 !min-w-0 overflow-hidden pointer-events-none border-0 p-0 m-0"
+    : undefined;
 
   return (
-    <LiveKitRoom
-      serverUrl={process.env.NEXT_PUBLIC_LIVEKIT_URL!}
-      token={token}
-      connect={true}
-      audio={true}
-      video={false}   // camera off by default — user enables it manually
-      onDisconnected={endHuddle}
-      onError={(err) => console.error("LiveKit error:", err)}
-    >
-      <RoomAudioRenderer />
-      <SessionInner
-        isMinimized={isMinimized}
-        onToggleSize={toggleMinimize}
-        onEnd={endHuddle}
-      />
-    </LiveKitRoom>
+    <>
+      <IncomingCallBanner />
+      {roomName && token && (
+        <LiveKitRoom
+          className={roomHostClass}
+          serverUrl={process.env.NEXT_PUBLIC_LIVEKIT_URL!}
+          token={token}
+          connect={true}
+          audio={true}
+          video={false}
+          onDisconnected={endHuddle}
+          onError={(err) => console.error("LiveKit error:", err)}
+        >
+          <RoomAudioRenderer />
+          <SessionInner
+            isMinimized={isMinimized}
+            onToggleSize={toggleMinimize}
+            onEnd={endHuddle}
+          />
+        </LiveKitRoom>
+      )}
+    </>
   );
 }
