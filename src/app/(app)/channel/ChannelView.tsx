@@ -133,7 +133,7 @@ function MessageRow({
   function cancelEdit() { setEditDraft(m.body); setIsEditing(false); }
 
   const actionBar = !isEditing ? (
-    <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 flex items-center gap-0.5 bg-zinc-800 border border-white/10 rounded-lg p-0.5 shadow-xl transition-all">
+    <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 flex items-center gap-0.5 bg-[var(--t-raised)] border border-[var(--t-border)] rounded-lg p-0.5 shadow-xl transition-all">
       {currentUserId && COMMON_EMOJI.slice(0, 4).map((emoji) => (
         <button
           key={emoji}
@@ -156,7 +156,7 @@ function MessageRow({
             <Smile className="w-3.5 h-3.5" />
           </button>
           {pickerOpen && (
-            <div className="absolute bottom-full right-0 mb-2 bg-zinc-800 border border-white/10 rounded-xl p-2 shadow-2xl grid grid-cols-8 gap-0.5 z-50 w-56">
+            <div className="absolute bottom-full right-0 mb-2 bg-[var(--t-raised)] border border-[var(--t-border)] rounded-xl p-2 shadow-2xl grid grid-cols-8 gap-0.5 z-50 w-56">
               {COMMON_EMOJI.map((emoji) => (
                 <button
                   key={emoji}
@@ -432,8 +432,8 @@ function ThreadPanel({
   }
 
   return (
-    <div className="w-80 flex flex-col border-l border-white/5 bg-zinc-900/60 shrink-0">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
+    <div className="w-80 flex flex-col border-l border-[var(--t-border)] bg-[var(--t-sidebar)] shrink-0">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--t-border)]">
         <div className="flex items-center gap-2">
           <MessageSquare className="w-3.5 h-3.5 text-zinc-500" />
           <span className="text-xs font-semibold text-zinc-300">Thread</span>
@@ -443,7 +443,7 @@ function ThreadPanel({
         </button>
       </div>
 
-      <div className="px-4 py-3 border-b border-white/5">
+      <div className="px-4 py-3 border-b border-[var(--t-border)]">
         <div className="flex gap-3">
           <UserAvatar userId={parentMessage.sender_id} displayName={parentMessage.users?.full_name || undefined} avatarUrl={parentMessage.users?.avatar_url} size="sm" />
           <div className="flex-1 min-w-0">
@@ -474,7 +474,7 @@ function ThreadPanel({
               <MarkdownMessage body={r.body} />
             </div>
             {currentUserId === r.sender_id && (
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 flex items-center gap-0.5 bg-zinc-800 border border-white/10 rounded-md p-0.5 shadow-lg">
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 flex items-center gap-0.5 bg-[var(--t-raised)] border border-[var(--t-border)] rounded-md p-0.5 shadow-lg">
                 <button onClick={() => handleEdit(r.id, r.body)} className="p-1 rounded hover:bg-white/10 text-zinc-500 hover:text-zinc-300 transition-colors">
                   <Pencil className="w-3 h-3" />
                 </button>
@@ -539,13 +539,13 @@ function PinsPanel({
   onClose: () => void;
 }) {
   return (
-    <div className="w-80 flex flex-col border-l border-white/5 bg-zinc-900/60 shrink-0">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
+    <div className="w-80 flex flex-col border-l border-[var(--t-border)] bg-[var(--t-sidebar)] shrink-0">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--t-border)]">
         <div className="flex items-center gap-2">
           <Pin className="w-3.5 h-3.5 text-zinc-500" />
           <span className="text-xs font-semibold text-zinc-300">Pinned Messages</span>
           {pins.length > 0 && (
-            <span className="text-[10px] font-semibold text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded-full">{pins.length}</span>
+            <span className="text-[10px] font-semibold text-zinc-500 bg-[var(--t-raised)] px-1.5 py-0.5 rounded-full">{pins.length}</span>
           )}
         </div>
         <button onClick={onClose} className="p-1 rounded hover:bg-white/10 text-zinc-500 hover:text-zinc-300 transition-colors">
@@ -559,7 +559,7 @@ function PinsPanel({
         ) : (
           <div className="space-y-2">
             {pins.map((pin) => (
-              <div key={pin.id} className="bg-white/[0.03] border border-white/5 rounded-xl p-3 group relative">
+              <div key={pin.id} className="bg-white/[0.03] border border-[var(--t-border)] rounded-xl p-3 group relative">
                 <p className="text-xs font-semibold text-zinc-300 mb-1">
                   {pin.message.users?.full_name || `User ${pin.message.sender_id.slice(0, 4)}`}
                 </p>
@@ -597,9 +597,9 @@ function DetailsPanel({
   onClose: () => void;
 }) {
   return (
-    <div className="w-72 flex flex-col bg-[#0c1324] border-l border-white/[0.06] shrink-0">
+    <div className="w-72 flex flex-col bg-[var(--t-sidebar)] border-l border-[var(--t-border)] shrink-0">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--t-border)]">
         <span className="text-xs font-semibold text-zinc-300 tracking-wide">Channel Details</span>
         <button onClick={onClose} className="p-1 rounded hover:bg-white/10 text-zinc-500 hover:text-zinc-300 transition-colors">
           <X className="w-3.5 h-3.5" />
@@ -608,7 +608,7 @@ function DetailsPanel({
 
       <div className="flex-1 overflow-y-auto">
         {/* Large channel name */}
-        <div className="px-5 pt-6 pb-4 border-b border-white/[0.06]">
+        <div className="px-5 pt-6 pb-4 border-b border-[var(--t-border)]">
           <p className="text-[10px] font-semibold text-emerald-400/70 uppercase tracking-widest mb-1">Channel</p>
           <h2 className="text-2xl font-bold text-white tracking-tight leading-tight break-words">
             #{channel.name}
@@ -661,12 +661,12 @@ function BriefModal({ brief, onClose }: { brief: string; onClose: () => void }) 
 
   return (
     <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-zinc-900 border border-white/10 rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col max-h-[85vh]">
-        <div className="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
+      <div className="bg-[var(--t-raised)] border border-[var(--t-border)] rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col max-h-[85vh]">
+        <div className="flex items-center justify-between p-4 border-b border-[var(--t-border)] shrink-0">
           <div className="flex items-center gap-2">
             <FileText className="w-4 h-4 text-indigo-400" />
             <span className="text-sm font-semibold text-white">Campaign Brief</span>
-            <span className="text-[10px] text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded-full">AI Generated</span>
+            <span className="text-[10px] text-zinc-500 bg-[var(--t-surface)] px-1.5 py-0.5 rounded-full">AI Generated</span>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -1071,7 +1071,7 @@ export function ChannelView({
       <div className="flex h-full overflow-hidden">
         <div className="flex flex-col flex-1 overflow-hidden">
           {/* Channel header */}
-          <header className="px-6 py-3 pt-8 flex items-center justify-between shrink-0 border-b border-white/5 select-none">
+          <header className="px-6 py-3 pt-8 flex items-center justify-between shrink-0 border-b border-[var(--t-border)] select-none">
             <div className="flex items-center gap-3 min-w-0">
               <h2 className="font-bold text-zinc-100 text-lg tracking-tight flex items-center gap-1.5 shrink-0">
                 <Hash className="w-4 h-4 text-zinc-500" /> {channel.name}
@@ -1143,7 +1143,7 @@ export function ChannelView({
 
           {/* AI Summary panel */}
           {summaryOpen && (
-            <div className="border-b border-white/5 bg-indigo-950/20">
+            <div className="border-b border-[var(--t-border)] bg-indigo-950/20">
               <div className="px-6 py-3">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
@@ -1222,7 +1222,7 @@ export function ChannelView({
             {showScrollBtn && (
               <button
                 onClick={() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })}
-                className="absolute bottom-4 right-6 w-8 h-8 bg-zinc-800 border border-white/10 rounded-full flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-700 shadow-xl transition-all z-10"
+                className="absolute bottom-4 right-6 w-8 h-8 bg-[var(--t-raised)] border border-[var(--t-border)] rounded-full flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 shadow-xl transition-all z-10"
               >
                 <ChevronDown className="w-4 h-4" />
               </button>

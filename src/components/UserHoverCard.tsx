@@ -106,20 +106,20 @@ export function UserHoverCard({
       <button
         type="button"
         onClick={handleClick}
-        className={`text-[13px] font-semibold text-zinc-200 hover:text-white hover:underline underline-offset-2 transition-colors ${!isSelf ? "cursor-pointer" : "cursor-default"}`}
+        className="text-[13px] font-semibold text-zinc-200 hover:text-white hover:underline underline-offset-2 transition-colors cursor-pointer"
       >
         {children}
       </button>
 
       {open && (
         <div
-          className="absolute left-0 top-full mt-1.5 z-[9999] w-56 bg-zinc-800 border border-white/10 rounded-xl shadow-2xl p-3 pointer-events-none"
+          className="absolute left-0 top-full mt-1.5 z-[9999] w-56 bg-[var(--t-raised)] border border-[var(--t-border)] rounded-xl shadow-2xl p-3 pointer-events-none"
           onMouseEnter={startOpen}
           onMouseLeave={startClose}
         >
           <div className="flex items-center gap-2.5">
             <div className="relative shrink-0">
-              <div className="w-9 h-9 rounded-full bg-zinc-700 flex items-center justify-center overflow-hidden">
+              <div className="w-9 h-9 rounded-full bg-[var(--t-surface)] flex items-center justify-center overflow-hidden">
                 {profile?.avatar_url ? (
                   <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
                 ) : (
@@ -127,7 +127,7 @@ export function UserHoverCard({
                 )}
               </div>
               {profile?.status && (
-                <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-zinc-800 ${STATUS_COLORS[profile.status] ?? "bg-zinc-500"}`} />
+                <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[var(--t-raised)] ${STATUS_COLORS[profile.status] ?? "bg-zinc-500"}`} />
               )}
             </div>
             <div className="min-w-0">

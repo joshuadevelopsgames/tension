@@ -142,7 +142,7 @@ export function UserProfilePanel({
           {/* Avatar + name hero */}
           <div className="px-5 pt-6 pb-5 border-b border-[var(--t-border)]">
             <div className="relative w-16 h-16 mb-4">
-              <div className="w-16 h-16 rounded-2xl bg-zinc-700 flex items-center justify-center overflow-hidden border border-[var(--t-border)]">
+              <div className="w-16 h-16 rounded-2xl bg-[var(--t-raised)] flex items-center justify-center overflow-hidden border border-[var(--t-border)]">
                 {profile?.avatar_url ? (
                   <img src={profile.avatar_url} alt={name} className="w-full h-full object-cover" />
                 ) : (
