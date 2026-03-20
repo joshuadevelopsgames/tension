@@ -16,12 +16,14 @@ export function UserHoverCard({
   displayName,
   currentUserId,
   workspaceId,
+  onProfileClick,
   children,
 }: {
   userId: string;
   displayName?: string | null;
   currentUserId?: string | null;
   workspaceId?: string | null;
+  onProfileClick?: (userId: string) => void;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -66,6 +68,7 @@ export function UserHoverCard({
   }, []);
 
   async function handleClick() {
+    if (onProfileClick) { onProfileClick(userId); return; }
     if (!currentUserId || !workspaceId || userId === currentUserId) return;
     const { data: existing } = await supabase
       .from("dm_participants")

@@ -14,6 +14,11 @@ export const THEMES = {
     description: "Luminescent deep violet",
     swatches: ["#0f0d1a", "#1a1628", "#a78bfa"],
   },
+  gilded: {
+    name: "Gilded",
+    description: "Warm obsidian & brushed gold",
+    swatches: ["#110e0b", "#231f1c", "#f59e0b"],
+  },
 } as const;
 
 export type ThemeId = keyof typeof THEMES;

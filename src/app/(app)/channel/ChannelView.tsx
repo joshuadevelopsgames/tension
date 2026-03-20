@@ -17,6 +17,7 @@ import { DateSeparator, isDifferentDay } from "@/components/DateSeparator";
 import { ChannelSettingsModal } from "@/components/ChannelSettingsModal";
 import { Confetti } from "@/components/Confetti";
 import { UserHoverCard } from "@/components/UserHoverCard";
+import { UserProfilePanel } from "@/components/UserProfilePanel";
 
 type Message = {
   id: string;
@@ -28,6 +29,7 @@ type Message = {
   users?: {
     full_name: string | null;
     avatar_url: string | null;
+    bio?: string | null;
   };
 };
 
@@ -62,6 +64,7 @@ function MessageRow({
   onSave,
   isSaved,
   isNew,
+  onProfileClick,
 }: {
   m: Message;
   prev: Message | null;
@@ -76,6 +79,7 @@ function MessageRow({
   onSave?: (id: string) => void;
   isSaved?: boolean;
   isNew?: boolean;
+  onProfileClick?: (userId: string) => void;
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editDraft, setEditDraft] = useState(m.body);
@@ -289,10 +293,16 @@ function MessageRow({
         currentUserId={currentUserId ?? undefined}
       />
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-0.5">
-          <UserHoverCard userId={m.sender_id} displayName={m.users?.full_name} currentUserId={currentUserId} workspaceId={workspaceId}>
+        <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+          <UserHoverCard userId={m.sender_id} displayName={m.users?.full_name} currentUserId={currentUserId} workspaceId={workspaceId} onProfileClick={onProfileClick}>
             {m.users?.full_name || `User ${m.sender_id.slice(0, 4)}`}
           </UserHoverCard>
+          {/* Inline role badge from bio (short bio = role title) */}
+          {m.users?.bio && m.users.bio.length <= 28 && (
+            <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest bg-[var(--t-accent)]/15 text-[var(--t-accent)] border border-[var(--t-accent)]/25">
+              {m.users.bio}
+            </span>
+          )}
           {m.urgent && (
             <span className="flex items-center gap-0.5 text-[10px] font-semibold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded-full">
               ⚠️ Urgent
@@ -728,6 +738,9 @@ export function ChannelView({
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [memberCount, setMemberCount] = useState(0);
 
+  // User profile panel
+  const [profilePanelUserId, setProfilePanelUserId] = useState<string | null>(null);
+
   // New message animation tracking
   const [newMessageIds, setNewMessageIds] = useState<Set<string>>(new Set());
 
@@ -1031,8 +1044,8 @@ export function ChannelView({
     }
   }
 
-  const rightPanelOpen = !!(threadParent || pinsOpen || detailsOpen);
-  const activePanel = threadParent ? "thread" : pinsOpen ? "pins" : detailsOpen ? "details" : null;
+  const rightPanelOpen = !!(threadParent || pinsOpen || detailsOpen || profilePanelUserId);
+  const activePanel = threadParent ? "thread" : pinsOpen ? "pins" : detailsOpen ? "details" : profilePanelUserId ? "profile" : null;
 
   return (
     <>
@@ -1167,7 +1180,7 @@ export function ChannelView({
                             prev={showDate ? null : prev}
                             currentUserId={currentUserId}
                             workspaceId={workspaceId}
-                            onThreadClick={(msg) => { setThreadParent(msg); setPinsOpen(false); }}
+                            onThreadClick={(msg) => { setThreadParent(msg); setPinsOpen(false); setDetailsOpen(false); setProfilePanelUserId(null); }}
                             replyCount={replyCounts[m.id] ?? 0}
                             onEdit={handleEdit}
                             onDelete={handleDelete}
@@ -1176,6 +1189,7 @@ export function ChannelView({
                             onSave={handleSave}
                             isSaved={savedIds.has(m.id)}
                             isNew={newMessageIds.has(m.id)}
+                            onProfileClick={(uid) => { setProfilePanelUserId(uid); setThreadParent(null); setPinsOpen(false); setDetailsOpen(false); }}
                           />
                         </div>
                       );
@@ -1247,6 +1261,14 @@ export function ChannelView({
             pins={pins}
             memberCount={memberCount}
             onClose={() => setDetailsOpen(false)}
+          />
+        )}
+        {activePanel === "profile" && profilePanelUserId && (
+          <UserProfilePanel
+            userId={profilePanelUserId}
+            currentUserId={currentUserId}
+            workspaceId={workspaceId}
+            onClose={() => setProfilePanelUserId(null)}
           />
         )}
       </div>
