@@ -264,8 +264,33 @@ function SessionInner({
 }
 
 // ── Root export — renders nothing when no active call ────────────────────────
+function playIncomingChime() {
+  try {
+    const ctx = new AudioContext();
+    const gain = ctx.createGain();
+    gain.connect(ctx.destination);
+    [[880, 0], [1100, 0.18]].forEach(([freq, delay]) => {
+      const osc = ctx.createOscillator();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      osc.connect(gain);
+      gain.gain.setValueAtTime(0, ctx.currentTime + delay);
+      gain.gain.linearRampToValueAtTime(0.18, ctx.currentTime + delay + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + delay + 0.35);
+      osc.start(ctx.currentTime + delay);
+      osc.stop(ctx.currentTime + delay + 0.35);
+    });
+    setTimeout(() => ctx.close(), 1200);
+  } catch {}
+}
+
 function IncomingCallBanner() {
   const { incomingInvite, acceptIncomingInvite, dismissIncomingInvite } = useHuddle();
+
+  useEffect(() => {
+    if (incomingInvite) playIncomingChime();
+  }, [incomingInvite]);
+
   if (!incomingInvite) return null;
 
   return createPortal(
