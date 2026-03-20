@@ -110,14 +110,15 @@ function SidebarContent({
   const activeChannelId = pathname === "/channel" ? searchParams.get("id") : null;
   const activeDmId = pathname === "/dm" ? searchParams.get("id") : null;
 
-  // Clear unread when navigating to a channel/DM
+  // Clear unread + activity orb when navigating to a channel/DM
   useEffect(() => {
-    if (activeChannelId) {
-      setUnreadCounts((prev) => { const n = { ...prev }; delete n[activeChannelId]; return n; });
-    }
-    if (activeDmId) {
-      setUnreadCounts((prev) => { const n = { ...prev }; delete n[activeDmId]; return n; });
-    }
+    const viewedId = activeChannelId || activeDmId;
+    if (!viewedId) return;
+    setUnreadCounts((prev) => { const n = { ...prev }; delete n[viewedId]; return n; });
+    setRecentlyActive((prev) => { const n = new Set(prev); n.delete(viewedId); return n; });
+    // Also cancel the orb timeout so it doesn't re-add later
+    const t = orbTimeoutsRef.current.get(viewedId);
+    if (t) { clearTimeout(t); orbTimeoutsRef.current.delete(viewedId); }
   }, [activeChannelId, activeDmId]);
 
   // Subscribe to new messages and increment unread for inactive channels/DMs

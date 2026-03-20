@@ -65,6 +65,11 @@ function DMPageContent() {
   useEffect(() => {
     if (!id) return;
 
+    // Reset state immediately when switching conversations
+    setLoading(true);
+    setMessages([]);
+    setParticipants([]);
+
     async function load() {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
