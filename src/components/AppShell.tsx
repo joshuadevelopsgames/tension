@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
-import { CommandPalette } from "./CommandPalette";
+import { HeaderSearch } from "./HeaderSearch";
 import { CreateChannelModal } from "./CreateChannelModal";
 import { NewDMModal } from "./NewDMModal";
 import { WorkspaceMembersModal } from "./WorkspaceMembersModal";
 import { NotificationBell } from "./NotificationBell";
 import { startWindowDrag } from "@/lib/tauri";
 import { ProfileModal } from "./ProfileModal";
-import { Bookmark, Plus, Search, Settings, Users, LogOut, Sparkles, Sun, Moon } from "lucide-react";
+import { Bookmark, Plus, Settings, Users, LogOut, Sparkles, Sun, Moon } from "lucide-react";
 import { StatusBar } from "./StatusBar";
 import { useTheme } from "./ThemeProvider";
 import { useState, useEffect, useRef, Suspense } from "react";
@@ -555,15 +555,7 @@ export function AppShell({
 
         {/* Search bar — centred in the header */}
         <div className="absolute left-1/2 -translate-x-1/2">
-          <button
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={() => document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true }))}
-            className="flex items-center gap-2 w-[54rem] px-3 py-1.5 bg-[var(--t-surface)]/60 hover:bg-[var(--t-surface)]/90 border border-[var(--t-border)] rounded-lg text-xs text-zinc-500 hover:text-zinc-400 transition-colors"
-          >
-            <Search className="w-3.5 h-3.5 shrink-0" />
-            <span className="flex-1 text-left">Search…</span>
-            <span className="px-1.5 py-0.5 rounded bg-[var(--t-raised)]/60 text-zinc-600 font-mono text-[10px]">⌘K</span>
-          </button>
+          <HeaderSearch channels={channels} />
         </div>
 
         <div className="ml-auto flex items-center gap-1">
@@ -599,7 +591,6 @@ export function AppShell({
         </main>
       </div>
 
-      <CommandPalette channels={channels} />
       <ProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
     </div>
   );
