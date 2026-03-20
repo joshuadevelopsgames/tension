@@ -121,7 +121,23 @@ function BlockEditor({
   onFocus: () => void;
   inputRef: (el: HTMLElement | null) => void;
 }) {
-  const ref = useRef<HTMLDivElement | HTMLTextAreaElement | HTMLInputElement | null>(null);
+  const divRef = useRef<HTMLDivElement | null>(null);
+  // Track whether the current content change came from the user typing
+  // (in which case we must NOT reset innerHTML, which would move the cursor).
+  const isTyping = useRef(false);
+
+  // Initialise innerHTML on mount, and resync whenever content changes from
+  // outside (undo/redo, block-type switch) but NOT during typing.
+  useEffect(() => {
+    const el = divRef.current;
+    if (!el || isTyping.current) return;
+    // Only touch the DOM if it's actually different to avoid cursor jumps.
+    if (el.innerHTML !== block.content) {
+      el.innerHTML = block.content;
+    }
+  // block.id change = new block; block.type change = type switched via slash menu
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [block.id, block.type, block.content]);
 
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === "Enter" && block.type !== "code" && !e.shiftKey) {
@@ -135,12 +151,15 @@ function BlockEditor({
   }
 
   function handleInput(e: React.FormEvent<HTMLDivElement>) {
+    isTyping.current = true;
     const text = (e.target as HTMLDivElement).innerText;
     if (text === "/") {
       const rect = (e.target as HTMLDivElement).getBoundingClientRect();
       onSlashKey(rect);
     }
     onChange({ content: text });
+    // Allow the effect to resync on the next external change
+    requestAnimationFrame(() => { isTyping.current = false; });
   }
 
   // Shared style for content-editable blocks
@@ -270,7 +289,7 @@ function BlockEditor({
   return (
     <div
       ref={(el) => {
-        (ref as any).current = el;
+        divRef.current = el;
         inputRef(el);
       }}
       contentEditable
@@ -281,7 +300,6 @@ function BlockEditor({
       data-placeholder={placeholderMap[block.type] ?? "Type…"}
       className={`${baseClass} ${typeStyles[block.type] || "text-sm"} py-0.5 empty:before:content-[attr(data-placeholder)] empty:before:text-[var(--t-fg-3)] empty:before:pointer-events-none`}
       style={{ color: "var(--t-fg)", ...wrapperStyles[block.type] }}
-      dangerouslySetInnerHTML={{ __html: block.content }}
     />
   );
 }
