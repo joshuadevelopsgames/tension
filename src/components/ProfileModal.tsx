@@ -210,7 +210,7 @@ export function ProfileModal({
                       {statusEmoji || "😀"}
                     </button>
                     {emojiPickerOpen && (
-                      <div className="absolute top-full left-0 mt-1 bg-zinc-800 border border-white/10 rounded-xl p-2 shadow-2xl grid grid-cols-6 gap-0.5 z-[300] w-48">
+                      <div className="absolute top-full left-0 mt-1 bg-zinc-800 border border-white/10 rounded-xl p-2 shadow-2xl grid grid-cols-6 gap-0.5 z-[300] w-48 max-h-48 overflow-y-auto">
                         {STATUS_EMOJIS.map((e) => (
                           <button
                             key={e}

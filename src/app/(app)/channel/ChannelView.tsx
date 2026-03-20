@@ -16,6 +16,7 @@ import { MarkdownMessage } from "@/components/MarkdownMessage";
 import { DateSeparator, isDifferentDay } from "@/components/DateSeparator";
 import { ChannelSettingsModal } from "@/components/ChannelSettingsModal";
 import { Confetti } from "@/components/Confetti";
+import { UserHoverCard } from "@/components/UserHoverCard";
 
 type Message = {
   id: string;
@@ -289,9 +290,9 @@ function MessageRow({
       />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-0.5">
-          <span className="text-[13px] font-semibold text-zinc-200">
+          <UserHoverCard userId={m.sender_id} displayName={m.users?.full_name} currentUserId={currentUserId} workspaceId={workspaceId}>
             {m.users?.full_name || `User ${m.sender_id.slice(0, 4)}`}
-          </span>
+          </UserHoverCard>
           {m.urgent && (
             <span className="flex items-center gap-0.5 text-[10px] font-semibold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded-full">
               ⚠️ Urgent
