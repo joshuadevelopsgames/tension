@@ -127,8 +127,8 @@ export function HeaderSearch({ channels }: { channels: { id: string; name: strin
             if (e.key === "Escape") { setOpen(false); inputRef.current?.blur(); }
           }}
           placeholder="Search messages or jump to a channel…"
-          className="flex-1 bg-transparent text-xs focus:outline-none"
-          style={{ color: "var(--t-fg, #e4e4e7)", caretColor: "var(--t-accent)" }}
+          className="flex-1 bg-transparent text-xs focus:outline-none placeholder:text-zinc-500"
+          style={{ color: "var(--t-fg)", caretColor: "var(--t-accent)" }}
         />
         {query ? (
           <button
@@ -181,7 +181,7 @@ export function HeaderSearch({ channels }: { channels: { id: string; name: strin
                   key={ch.id}
                   onMouseDown={() => navigate(`/channel?id=${ch.id}`)}
                   className="w-full flex items-center gap-3 px-4 py-2 text-sm text-left transition-colors group"
-                  style={{ color: "var(--t-fg, #e4e4e7)" }}
+                  style={{ color: "var(--t-fg)" }}
                   onMouseEnter={(e) => (e.currentTarget.style.background = `color-mix(in srgb, var(--t-accent) 8%, transparent)`)}
                   onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                 >
@@ -207,7 +207,7 @@ export function HeaderSearch({ channels }: { channels: { id: string; name: strin
                     msg.channel_id ? `/channel?id=${msg.channel_id}` : `/dm?id=${msg.dm_conversation_id}`
                   )}
                   className="w-full flex items-start gap-3 px-4 py-2.5 text-left transition-colors"
-                  style={{ color: "var(--t-fg, #e4e4e7)" }}
+                  style={{ color: "var(--t-fg)" }}
                   onMouseEnter={(e) => (e.currentTarget.style.background = `color-mix(in srgb, var(--t-accent) 8%, transparent)`)}
                   onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                 >

@@ -5,6 +5,10 @@
   --foreground: #ededed;
 }
 
+/* ── Foreground tokens (used where CSS vars are needed for text) ─────── */
+:root                { --t-fg: #e4e4e7; --t-fg-2: #a1a1aa; --t-fg-3: #71717a; }
+[data-mode="light"]  { --t-fg: #18181b; --t-fg-2: #52525b; --t-fg-3: #71717a; }
+
 /* ── Tension Theme Tokens ─────────────────────────────────────────────── */
 
 [data-theme="obsidian"] {
