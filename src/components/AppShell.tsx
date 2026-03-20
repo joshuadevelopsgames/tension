@@ -9,10 +9,24 @@ import { WorkspaceMembersModal } from "./WorkspaceMembersModal";
 import { NotificationBell } from "./NotificationBell";
 import { startWindowDrag } from "@/lib/tauri";
 import { ProfileModal } from "./ProfileModal";
-import { Bookmark, Plus, Settings, Users, LogOut, Sparkles } from "lucide-react";
+import { Bookmark, Plus, Settings, Users, LogOut, Sparkles, Sun, Moon } from "lucide-react";
 import { StatusBar } from "./StatusBar";
+import { useTheme } from "./ThemeProvider";
 import { useState, useEffect, useRef, Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
+
+function ModeToggle() {
+  const { mode, toggleMode } = useTheme();
+  return (
+    <button
+      onClick={toggleMode}
+      title={mode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+      className="relative p-2 rounded-lg hover:bg-white/5 text-zinc-400 hover:text-zinc-200 transition-colors"
+    >
+      {mode === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+    </button>
+  );
+}
 
 function StatusBarWrapper({ workspaceName, channels }: { workspaceName: string; channels: { id: string; name: string; slug: string }[] }) {
   const pathname = usePathname();
@@ -546,6 +560,7 @@ export function AppShell({
       >
         <div className="pl-16 text-[11px] font-medium text-zinc-500 tracking-wide">Tension</div>
         <div className="ml-auto flex items-center gap-1">
+          <ModeToggle />
           <NotificationBell currentUserId={currentUserId} />
         </div>
       </div>
