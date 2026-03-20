@@ -358,9 +358,10 @@ export function DMView({
             disabled={isConnecting}
             className={`ml-auto flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors ${
               activeRoom === `dm-${dmId}`
-                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                ? ""
                 : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"
             }`}
+            style={activeRoom === `dm-${dmId}` ? { background: "color-mix(in srgb, var(--t-accent) 15%, transparent)", color: "var(--t-accent)", border: "1px solid color-mix(in srgb, var(--t-accent) 30%, transparent)" } : {}}
             title="Start a session"
           >
             {isConnecting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Headphones className="w-3 h-3" />}

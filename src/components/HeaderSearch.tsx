@@ -155,7 +155,7 @@ export function HeaderSearch({ channels }: { channels: { id: string; name: strin
       {/* Dropdown */}
       {open && (
         <div
-          className="absolute top-full left-0 mt-1.5 w-full rounded-xl overflow-hidden z-[200]"
+          className="absolute top-full left-0 mt-1.5 w-full rounded-xl overflow-hidden z-[200] animate-pop-in"
           style={{
             background: "var(--t-raised)",
             border: "1px solid var(--t-border)",

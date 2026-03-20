@@ -46,6 +46,7 @@ export function MessageComposer({
   const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
   const [sending, setSending] = useState(false);
   const [draftLoading, setDraftLoading] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   // @mention autocomplete state
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
@@ -212,9 +213,11 @@ export function MessageComposer({
   }
 
   // Drag & drop
-  function handleDragOver(e: React.DragEvent) { e.preventDefault(); }
+  function handleDragOver(e: React.DragEvent) { e.preventDefault(); setIsDragOver(true); }
+  function handleDragLeave(e: React.DragEvent) { if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsDragOver(false); }
   function handleDrop(e: React.DragEvent) {
     e.preventDefault();
+    setIsDragOver(false);
     const files = Array.from(e.dataTransfer.files);
     if (files.length) addFiles(files);
   }
@@ -288,9 +291,11 @@ export function MessageComposer({
 
   return (
     <div
-      className="p-4 pt-2 shrink-0"
+      className="p-4 pt-2 shrink-0 transition-colors"
       onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
       onDrop={handleDrop}
+      style={isDragOver ? { background: "color-mix(in srgb, var(--t-accent) 5%, transparent)" } : {}}
     >
       {/* File previews */}
       {pendingFiles.length > 0 && (
@@ -318,7 +323,7 @@ export function MessageComposer({
 
       {/* /slash commands dropdown */}
       {slashQuery !== null && filteredSlash.length > 0 && (
-        <div className="mb-1 bg-[var(--t-raised)] border border-[var(--t-border)] rounded-xl shadow-xl overflow-hidden">
+        <div className="mb-1 bg-[var(--t-raised)] border border-[var(--t-border)] rounded-xl overflow-hidden animate-pop-in">
           {filteredSlash.map((c, i) => (
             <button
               key={c.cmd}
@@ -337,7 +342,7 @@ export function MessageComposer({
 
       {/* @mention dropdown */}
       {mentionQuery !== null && filteredMembers.length > 0 && (
-        <div className="mb-1 bg-[var(--t-raised)] border border-[var(--t-border)] rounded-xl shadow-xl overflow-hidden">
+        <div className="mb-1 bg-[var(--t-raised)] border border-[var(--t-border)] rounded-xl overflow-hidden animate-pop-in">
           {filteredMembers.slice(0, 6).map((m, i) => {
             const initials = m.full_name.slice(0, 2).toUpperCase();
             return (
@@ -359,7 +364,7 @@ export function MessageComposer({
         </div>
       )}
 
-      <div className="flex items-end gap-2 bg-[var(--t-surface)]/80 backdrop-blur-md border border-[var(--t-border)] rounded-xl p-1 shadow-inner focus-within:border-[var(--t-accent)]/40 focus-within:bg-[var(--t-surface)]/90 transition-colors">
+      <div className="flex items-end gap-2 bg-[var(--t-surface)]/80 backdrop-blur-md border border-[var(--t-border)] rounded-xl p-1 shadow-inner focus-within:border-[var(--t-accent)]/40 focus-within:bg-[var(--t-surface)]/90 transition-colors" style={isDragOver ? { borderColor: "var(--t-accent)", background: "color-mix(in srgb, var(--t-accent) 8%, var(--t-surface))" } : {}}>
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
@@ -401,7 +406,9 @@ export function MessageComposer({
           {sending ? <Loader2 className="w-[18px] h-[18px] animate-spin" /> : <Send className="w-[18px] h-[18px]" />}
         </button>
       </div>
-      <p className="text-[10px] text-zinc-700 mt-1 pl-1">Enter to send · Shift+Enter for new line</p>
+      <p className="text-[10px] mt-1 pl-1 transition-colors" style={{ color: isDragOver ? "var(--t-accent)" : "var(--t-fg-3)" }}>
+        {isDragOver ? "Drop files to attach" : "Enter to send · Shift+Enter for new line"}
+      </p>
     </div>
   );
 }

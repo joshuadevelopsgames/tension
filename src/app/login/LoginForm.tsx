@@ -103,7 +103,7 @@ export function LoginForm() {
         type="button"
         onClick={handleDemoLogin}
         disabled={loading}
-        className="w-full rounded-lg bg-indigo-600/20 py-2.5 text-[13px] font-semibold text-indigo-300 hover:bg-indigo-600/30 disabled:opacity-50 transition-colors border border-indigo-500/20"
+        className="w-full rounded-lg py-2.5 text-[13px] font-semibold disabled:opacity-50 transition-colors" style={{ background: "color-mix(in srgb, var(--t-accent) 15%, transparent)", color: "var(--t-accent)", border: "1px solid color-mix(in srgb, var(--t-accent) 25%, transparent)" }}
       >
         {loading ? "Please wait…" : "Demo Login"}
       </button>

@@ -60,7 +60,7 @@ export default function Home() {
   }, [router]);
 
   return (
-    <div className="flex h-screen text-zinc-500 overflow-hidden font-sans border border-white/10 shadow-2xl bg-zinc-950 rounded-xl items-center justify-center">
+    <div className="flex h-screen overflow-hidden font-sans shadow-2xl rounded-xl items-center justify-center" style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", color: "var(--t-fg-2)" }}>
       <div
         onPointerDown={startWindowDrag}
         className="absolute top-0 left-0 right-0 h-10 w-full z-10 select-none cursor-grab active:cursor-grabbing"

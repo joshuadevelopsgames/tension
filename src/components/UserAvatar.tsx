@@ -107,7 +107,7 @@ export function UserAvatar({
     <div className="relative inline-block" ref={popoverRef}>
       <button
         onClick={handleClick}
-        className={`${sizeClasses[size]} rounded-full shrink-0 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center font-semibold text-indigo-300 select-none overflow-hidden hover:border-indigo-500/40 transition-colors relative`}
+        className={`${sizeClasses[size]} rounded-full shrink-0 flex items-center justify-center font-semibold select-none overflow-hidden transition-colors relative`} style={{ background: "color-mix(in srgb, var(--t-accent) 15%, transparent)", border: "1px solid color-mix(in srgb, var(--t-accent) 25%, transparent)", color: "var(--t-accent)" }}
       >
         {avatarUrl ? (
           <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
@@ -118,9 +118,9 @@ export function UserAvatar({
       </button>
 
       {open && (
-        <div className="absolute left-full top-0 ml-2 w-64 bg-zinc-900 border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden">
+        <div className="absolute left-full top-0 ml-2 w-64 rounded-xl z-50 overflow-hidden animate-pop-in" style={{ background: "var(--t-raised)", border: "1px solid var(--t-border)", boxShadow: "var(--t-shadow-high)" }}>
           {/* Cover / header */}
-          <div className="h-16 bg-gradient-to-br from-indigo-900/40 to-purple-900/40 relative">
+          <div className="h-16 relative" style={{ background: "color-mix(in srgb, var(--t-accent) 15%, var(--t-surface))" }}>
             <button
               onClick={() => setOpen(false)}
               className="absolute top-2 right-2 p-1 rounded hover:bg-black/20 text-zinc-400 hover:text-white transition-colors"
@@ -131,7 +131,7 @@ export function UserAvatar({
 
           {/* Avatar (overlapping) */}
           <div className="px-4 pb-4 -mt-8 relative">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500/30 to-purple-500/30 border-2 border-zinc-900 flex items-center justify-center text-xl font-semibold text-indigo-300 overflow-hidden mb-3">
+            <div className="w-16 h-16 rounded-full flex items-center justify-center text-xl font-semibold overflow-hidden mb-3" style={{ background: "color-mix(in srgb, var(--t-accent) 15%, transparent)", border: "2px solid var(--t-sidebar)", color: "var(--t-accent)" }}>
               {(profile?.avatar_url || avatarUrl) ? (
                 <img src={profile?.avatar_url ?? avatarUrl ?? ""} alt={profile?.full_name ?? displayName} className="w-full h-full object-cover" />
               ) : (initials)}
@@ -174,7 +174,7 @@ export function UserAvatar({
                 {workspaceId && currentUserId && currentUserId !== userId && (
                   <button
                     onClick={startDM}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-lg transition-colors mt-2"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-white text-xs font-medium rounded-lg transition-colors mt-2" style={{ background: "var(--t-accent)" }}
                   >
                     <MessageSquare className="w-3.5 h-3.5" />
                     Message

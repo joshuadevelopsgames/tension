@@ -20,9 +20,9 @@ export function MarkdownMessage({ body, aiSource }: { body: string, aiSource?: '
   return (
     <div className="markdown-message text-[14px] leading-relaxed text-zinc-300">
       {aiSource === 'gemini' && (
-        <div className="flex items-center gap-1.5 mb-2 px-2 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 w-fit">
-          <Sparkles className="w-3 h-3 text-emerald-400" />
-          <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-tight">Gemini Helper</span>
+        <div className="flex items-center gap-1.5 mb-2 px-2 py-1 rounded-md w-fit" style={{ background: "color-mix(in srgb, var(--t-accent) 10%, transparent)", border: "1px solid color-mix(in srgb, var(--t-accent) 25%, transparent)" }}>
+          <Sparkles className="w-3 h-3" style={{ color: "var(--t-accent)" }} />
+          <span className="text-[10px] font-bold uppercase tracking-tight" style={{ color: "var(--t-accent)" }}>AI Response</span>
         </div>
       )}
       <ReactMarkdown
@@ -61,13 +61,13 @@ export function MarkdownMessage({ body, aiSource }: { body: string, aiSource?: '
             const isBlock = !!className;
             if (isBlock) {
               return (
-                <code className={`block bg-black/40 border border-white/10 rounded-lg px-3 py-2 my-2 text-[12px] font-mono text-emerald-300 whitespace-pre overflow-x-auto ${className ?? ""}`}>
+                <code className={`block bg-black/40 border border-white/10 rounded-lg px-3 py-2 my-2 text-[12px] font-mono whitespace-pre overflow-x-auto ${className ?? ""}`} style={{ color: "var(--t-accent)" }}>
                   {children}
                 </code>
               );
             }
             return (
-              <code className="bg-black/40 border border-white/10 rounded px-1.5 py-0.5 text-[12px] font-mono text-emerald-300">
+              <code className="bg-black/40 border border-white/10 rounded px-1.5 py-0.5 text-[12px] font-mono" style={{ color: "var(--t-accent)" }}>
                 {children}
               </code>
             );
@@ -81,7 +81,7 @@ export function MarkdownMessage({ body, aiSource }: { body: string, aiSource?: '
           // Blockquote
           blockquote({ children }) {
             return (
-              <blockquote className="border-l-2 border-indigo-500/50 pl-3 my-1 text-zinc-400 italic">
+              <blockquote className="border-l-2 pl-3 my-1 italic" style={{ borderColor: "color-mix(in srgb, var(--t-accent) 50%, transparent)", color: "var(--t-fg-2)" }}>
                 {children}
               </blockquote>
             );
@@ -110,7 +110,7 @@ export function MarkdownMessage({ body, aiSource }: { body: string, aiSource?: '
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-indigo-400 hover:text-indigo-300 underline underline-offset-2 transition-colors"
+                className="underline underline-offset-2 transition-colors" style={{ color: "var(--t-accent)" }}
               >
                 {children}
               </a>

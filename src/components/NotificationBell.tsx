@@ -88,8 +88,8 @@ export function NotificationBell({ currentUserId }: { currentUserId: string }) {
 
   const typeColors: Record<string, string> = {
     mention: "bg-[var(--t-accent)]",
-    reply: "bg-emerald-500",
-    dm: "bg-amber-500",
+    reply:   "bg-[var(--t-accent)]",
+    dm:      "bg-amber-500",
   };
 
   return (
@@ -108,7 +108,7 @@ export function NotificationBell({ currentUserId }: { currentUserId: string }) {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 bg-[var(--t-raised)] border border-[var(--t-border)] rounded-xl shadow-2xl z-50 overflow-hidden">
+        <div className="absolute right-0 top-full mt-2 w-80 rounded-xl z-50 overflow-hidden animate-pop-in" style={{ background: "var(--t-raised)", border: "1px solid var(--t-border)", boxShadow: "var(--t-shadow-high)" }}>
           <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--t-border)]">
             <span className="text-xs font-semibold text-zinc-300">Notifications</span>
             {unreadCount > 0 && (
@@ -119,7 +119,11 @@ export function NotificationBell({ currentUserId }: { currentUserId: string }) {
           </div>
           <div className="overflow-y-auto max-h-80">
             {notifications.length === 0 ? (
-              <div className="p-6 text-center text-sm text-zinc-600">No notifications yet.</div>
+              <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
+                <Bell className="w-8 h-8 mb-2 opacity-20" style={{ color: "var(--t-accent)" }} />
+                <p className="text-xs font-medium" style={{ color: "var(--t-fg-2)" }}>You're all caught up</p>
+                <p className="text-[11px] mt-0.5" style={{ color: "var(--t-fg-3)" }}>Mentions and replies will appear here.</p>
+              </div>
             ) : (
               <ul>
                 {notifications.map((n) => (

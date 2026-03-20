@@ -229,7 +229,7 @@ export function ProfileModal({
                   type="text"
                   value={fullName}
                   onChange={e => setFullName(e.target.value)}
-                  className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500/50 transition-colors"
+                  className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none transition-colors" style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", color: "var(--t-fg)" }}
                   placeholder="e.g. John Doe"
                 />
               </div>
@@ -252,7 +252,8 @@ export function ProfileModal({
                     <button
                       type="button"
                       onClick={() => setEmojiPickerOpen((o) => !o)}
-                      className={`w-10 h-10 flex items-center justify-center rounded-lg border text-lg transition-colors ${emojiPickerOpen ? "border-indigo-500/50 bg-indigo-500/10" : "border-white/10 bg-black/20 hover:border-white/20"}`}
+                      className={`w-10 h-10 flex items-center justify-center rounded-lg border text-lg transition-colors ${emojiPickerOpen ? "" : "border-white/10 bg-black/20 hover:border-white/20"}`}
+                      style={emojiPickerOpen ? { borderColor: "color-mix(in srgb, var(--t-accent) 50%, transparent)", background: "color-mix(in srgb, var(--t-accent) 10%, transparent)" } : {}}
                     >
                       {statusEmoji || "😀"}
                     </button>
@@ -275,7 +276,7 @@ export function ProfileModal({
                     type="text"
                     value={statusMessage}
                     onChange={e => setStatusMessage(e.target.value)}
-                    className="flex-1 bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500/50 transition-colors"
+                    className="flex-1 rounded-lg px-3 py-2 text-sm focus:outline-none transition-colors" style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", color: "var(--t-fg)" }}
                     placeholder="What's your status?"
                     maxLength={80}
                   />
@@ -297,11 +298,8 @@ export function ProfileModal({
                         key={s}
                         type="button"
                         onClick={() => setStatus(s)}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-left text-xs font-medium transition-colors ${
-                          status === s
-                            ? "border-indigo-500/40 bg-indigo-500/10 text-indigo-200"
-                            : "border-white/10 bg-black/10 text-zinc-400 hover:text-zinc-200 hover:border-white/20"
-                        }`}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-left text-xs font-medium transition-colors ${status === s ? "" : "border-white/10 bg-black/10 text-zinc-400 hover:text-zinc-200 hover:border-white/20"}`}
+                        style={status === s ? { borderColor: "color-mix(in srgb, var(--t-accent) 40%, transparent)", background: "color-mix(in srgb, var(--t-accent) 10%, transparent)", color: "var(--t-accent)" } : {}}
                       >
                         <span className={`w-2 h-2 rounded-full shrink-0 ${colors[s]}`} />
                         {s.charAt(0).toUpperCase() + s.slice(1)}
@@ -326,7 +324,7 @@ export function ProfileModal({
               <button
                 type="submit"
                 disabled={saving || uploadingAvatar}
-                className="px-4 py-2 text-sm font-medium bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+                className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2" style={{ background: "var(--t-accent)" }}
               >
                 {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 Save Changes

@@ -151,7 +151,8 @@ function MessageRow({
         <div className="relative" ref={pickerRef}>
           <button
             onClick={() => setPickerOpen((o) => !o)}
-            className={`p-1.5 rounded hover:bg-white/10 transition-colors ${pickerOpen ? "text-indigo-400" : "text-zinc-400 hover:text-zinc-200"}`}
+            className={`p-1.5 rounded hover:bg-white/10 transition-colors ${pickerOpen ? "" : "text-zinc-400 hover:text-zinc-200"}`}
+            style={pickerOpen ? { color: "var(--t-accent)" } : {}}
             title="More reactions"
           >
             <Smile className="w-3.5 h-3.5" />
@@ -186,7 +187,8 @@ function MessageRow({
       {onSave && (
         <button
           onClick={() => onSave(m.id)}
-          className={`p-1.5 rounded hover:bg-white/10 transition-colors ${isSaved ? "text-indigo-400" : "text-zinc-400 hover:text-zinc-200"}`}
+          className={`p-1.5 rounded hover:bg-white/10 transition-colors ${isSaved ? "" : "text-zinc-400 hover:text-zinc-200"}`}
+          style={isSaved ? { color: "var(--t-accent)" } : {}}
           title={isSaved ? "Remove from saved" : "Save message"}
         >
           {isSaved ? <BookmarkCheck className="w-3.5 h-3.5" /> : <Bookmark className="w-3.5 h-3.5" />}
@@ -236,9 +238,9 @@ function MessageRow({
           if (e.key === "Enter") saveEdit();
           if (e.key === "Escape") cancelEdit();
         }}
-        className="flex-1 bg-black/30 border border-indigo-500/40 rounded-md px-2 py-1 text-[14px] text-zinc-200 focus:outline-none"
+        className="flex-1 rounded-md px-2 py-1 text-[14px] focus:outline-none" style={{ background: "var(--t-surface)", border: "1px solid color-mix(in srgb, var(--t-accent) 40%, transparent)", color: "var(--t-fg)" }}
       />
-      <button onClick={saveEdit} disabled={saving} className="p-1 rounded hover:bg-white/10 text-indigo-400 hover:text-indigo-300 disabled:opacity-40">
+      <button onClick={saveEdit} disabled={saving} className="p-1 rounded hover:bg-white/10 disabled:opacity-40" style={{ color: "var(--t-accent)" }}>
         <Check className="w-3.5 h-3.5" />
       </button>
       <button onClick={cancelEdit} className="p-1 rounded hover:bg-white/10 text-zinc-500 hover:text-zinc-300">
@@ -253,7 +255,7 @@ function MessageRow({
       {onThreadClick && typeof replyCount === "number" && replyCount > 0 && (
         <button
           onClick={() => onThreadClick(m)}
-          className="mt-1 text-[11px] font-medium text-indigo-400 hover:text-indigo-300 flex items-center gap-1 transition-colors"
+          className="mt-1 text-[11px] font-medium flex items-center gap-1 transition-colors" style={{ color: "var(--t-accent)" }}
         >
           <MessageSquare className="w-3 h-3" />
           {replyCount} {replyCount === 1 ? "reply" : "replies"}
@@ -661,11 +663,11 @@ function BriefModal({ brief, onClose }: { brief: string; onClose: () => void }) 
   }
 
   return (
-    <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-[var(--t-raised)] border border-[var(--t-border)] rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col max-h-[85vh]">
+    <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+      <div className="bg-[var(--t-raised)] border border-[var(--t-border)] rounded-2xl w-full max-w-2xl flex flex-col max-h-[85vh] animate-pop-in" style={{ boxShadow: "var(--t-shadow-high)" }}>
         <div className="flex items-center justify-between p-4 border-b border-[var(--t-border)] shrink-0">
           <div className="flex items-center gap-2">
-            <FileText className="w-4 h-4 text-indigo-400" />
+            <FileText className="w-4 h-4" style={{ color: "var(--t-accent)" }} />
             <span className="text-sm font-semibold text-white">Campaign Brief</span>
             <span className="text-[10px] text-zinc-500 bg-[var(--t-surface)] px-1.5 py-0.5 rounded-full">AI Generated</span>
           </div>
@@ -1114,7 +1116,7 @@ export function ChannelView({
               {channel.topic && <span className="text-zinc-500 text-[11px] font-medium truncate">— {channel.topic}</span>}
             </div>
 
-            <div className="flex items-center gap-1 shrink-0">
+            <div className="flex items-center gap-1 shrink-0 pl-3 ml-2" style={{ borderLeft: "1px solid var(--t-border)" }}>
               {(channel.client_tag || channel.campaign_tag) && (
                 <div className="flex items-center gap-1.5 mr-2">
                   {[channel.client_tag, channel.campaign_tag].filter(Boolean).map((tag) => (
@@ -1133,9 +1135,10 @@ export function ChannelView({
                 disabled={isConnecting}
                 className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors ${
                   activeRoom === `channel-${channel.id}`
-                    ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                    ? ""
                     : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"
                 }`}
+                style={activeRoom === `channel-${channel.id}` ? { background: "color-mix(in srgb, var(--t-accent) 15%, transparent)", color: "var(--t-accent)", border: "1px solid color-mix(in srgb, var(--t-accent) 30%, transparent)" } : {}}
                 title="Start a session"
               >
                 {isConnecting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Headphones className="w-3 h-3" />}
@@ -1146,7 +1149,8 @@ export function ChannelView({
               <button
                 onClick={handleSummarize}
                 disabled={summaryLoading}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors ${summaryOpen ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30" : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"}`}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors ${summaryOpen ? "" : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"}`}
+                style={summaryOpen ? { background: "color-mix(in srgb, var(--t-accent) 15%, transparent)", color: "var(--t-accent)", border: "1px solid color-mix(in srgb, var(--t-accent) 30%, transparent)" } : {}}
                 title="Summarize this channel"
               >
                 {summaryLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
@@ -1198,20 +1202,20 @@ export function ChannelView({
 
           {/* AI Summary panel */}
           {summaryOpen && (
-            <div className="border-b border-[var(--t-border)] bg-indigo-950/20">
+            <div className="border-b border-[var(--t-border)]" style={{ background: "color-mix(in srgb, var(--t-accent) 5%, transparent)" }}>
               <div className="px-6 py-3">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-                    <span className="text-xs font-semibold text-indigo-300">Channel Summary</span>
-                    <span className="text-[10px] text-indigo-500/70 bg-indigo-500/10 px-1.5 py-0.5 rounded-full">AI</span>
+                    <Sparkles className="w-3.5 h-3.5" style={{ color: "var(--t-accent)" }} />
+                    <span className="text-xs font-semibold" style={{ color: "var(--t-accent)" }}>Channel Summary</span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ color: "var(--t-accent)", opacity: 0.7, background: "color-mix(in srgb, var(--t-accent) 10%, transparent)" }}>AI</span>
                   </div>
                   <button onClick={() => setSummaryOpen(false)} className="p-0.5 rounded hover:bg-white/10 text-zinc-500 hover:text-zinc-300 transition-colors">
                     <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
                 {summaryLoading ? (
-                  <div className="flex items-center gap-2 text-xs text-indigo-400 py-2">
+                  <div className="flex items-center gap-2 text-xs py-2" style={{ color: "var(--t-accent)" }}>
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
                     <span>Summarizing…</span>
                   </div>
@@ -1225,9 +1229,9 @@ export function ChannelView({
           )}
 
           {showFirstMessageBanner && (
-            <div className="px-6 py-2 bg-indigo-500/10 border-b border-indigo-500/20 flex items-center gap-2 animate-msg-in">
+            <div className="px-6 py-2 flex items-center gap-2 animate-msg-in" style={{ background: "color-mix(in srgb, var(--t-accent) 8%, transparent)", borderBottom: "1px solid color-mix(in srgb, var(--t-accent) 20%, transparent)" }}>
               <span className="text-lg">🎉</span>
-              <p className="text-xs font-medium text-indigo-300">
+              <p className="text-xs font-medium" style={{ color: "var(--t-accent)" }}>
                 You just sent the first message in <span className="font-semibold">#{channel.name}</span> — the channel is officially alive!
               </p>
             </div>
@@ -1238,7 +1242,14 @@ export function ChannelView({
               <div className="flex flex-col justify-end min-h-full px-6 py-4">
                 {topLevelMessages.length === 0 ? (
                   <div className="flex-1 flex items-center justify-center py-16">
-                    <p className="text-zinc-600 text-sm font-medium">No messages yet. Start the conversation.</p>
+                    <div className="text-center max-w-xs mx-auto select-none">
+                      <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ background: "color-mix(in srgb, var(--t-accent) 10%, transparent)", border: "1px solid color-mix(in srgb, var(--t-accent) 20%, transparent)" }}>
+                        <Hash className="w-7 h-7" style={{ color: "var(--t-accent)", opacity: 0.7 }} />
+                      </div>
+                      <p className="text-sm font-semibold mb-1" style={{ color: "var(--t-fg)" }}>#{channel.name}</p>
+                      {channel.topic && <p className="text-xs mb-3" style={{ color: "var(--t-fg-2)" }}>{channel.topic}</p>}
+                      <p className="text-xs" style={{ color: "var(--t-fg-3)" }}>This is the very beginning of this channel.<br />Send a message to get the conversation started.</p>
+                    </div>
                   </div>
                 ) : (
                   <>

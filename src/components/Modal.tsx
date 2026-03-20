@@ -27,12 +27,12 @@ export function Modal({ title, onClose, children, maxWidth = "max-w-sm" }: Modal
   return (
     <ModalPortal>
       <div
-        className={`fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4`}
+        className={`fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in`}
         onClick={onClose}
       >
         <div
-          className={`bg-[var(--t-raised)] border border-[var(--t-border)] rounded-2xl w-full ${maxWidth} shadow-2xl overflow-hidden flex flex-col`}
-          style={{ boxShadow: "0 24px 64px rgba(0,0,0,0.6)" }}
+          className={`bg-[var(--t-raised)] border border-[var(--t-border)] rounded-2xl w-full ${maxWidth} overflow-hidden flex flex-col animate-pop-in`}
+          style={{ boxShadow: "var(--t-shadow-high)" }}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
