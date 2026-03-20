@@ -491,10 +491,8 @@ export function WorkspacesView() {
   // ── Slash menu ─────────────────────────────────────────────────────────────
 
   function openSlashMenu(rect: DOMRect, blockId: string) {
-    setSlashMenu({ x: rect.left, y: rect.bottom + 4 });
     setSlashFilter("");
-    (slashMenu as any);
-    setSlashMenu({ x: rect.left, y: rect.bottom + 4, blockId } as any);
+    setSlashMenu({ x: rect.left, y: rect.bottom + 4, blockId });
   }
 
   function insertBlockType(type: BlockType) {
