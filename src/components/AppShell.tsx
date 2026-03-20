@@ -314,7 +314,7 @@ function SidebarContent({
             <div className="relative mt-1">
               {/* Status picker popover */}
               {statusPickerOpen && (
-                <div className="absolute bottom-full left-0 mb-2 w-52 bg-zinc-800 border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
+                <div className="absolute bottom-full left-0 mb-2 w-52 bg-zinc-800 border border-white/10 rounded-xl shadow-2xl z-50">
                   {/* Custom status */}
                   <div className="p-2 border-b border-white/5">
                     <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider px-1 mb-1.5">Custom Status</p>
@@ -329,7 +329,7 @@ function SidebarContent({
                           {customStatusEmoji || "😊"}
                         </button>
                         {emojiPickerOpen && (
-                          <div className="absolute bottom-full left-0 mb-1 bg-zinc-800 border border-white/10 rounded-xl p-2 shadow-2xl grid grid-cols-6 gap-0.5 z-[9999] w-44">
+                          <div className="absolute top-full left-0 mt-1 bg-zinc-800 border border-white/10 rounded-xl p-2 shadow-2xl grid grid-cols-6 gap-0.5 z-[9999] w-48 max-h-48 overflow-y-auto">
                             {["😊","😄","😂","😅","🤔","🤩","😎","🥳","😴","🤒","😤","🥹",
                               "🔥","✅","🚀","💯","👀","💡","⚡","🎯","📌","⚠️","🏆","✨",
                               "👍","👎","❤️","🎉","💪","🫡","🙏","💀","🤝","👋","🫶","🎊",
