@@ -352,7 +352,7 @@ function SidebarContent({
             <div className="relative mt-1">
               {/* Status picker popover */}
               {statusPickerOpen && (
-                <div className="absolute bottom-full left-0 mb-2 w-52 bg-[var(--t-raised)]/90 backdrop-blur-xl border border-[var(--t-border)] rounded-xl z-50" style={{boxShadow:'0px 24px 48px rgba(0,0,0,0.5)'}}>
+                <div className="absolute bottom-full left-0 mb-2 w-52 bg-[var(--t-raised)] border border-[var(--t-border)] rounded-xl z-50" style={{boxShadow:'0px 24px 48px rgba(0,0,0,0.5)'}}>
                   {/* Custom status */}
                   <div className="p-2 border-b border-[var(--t-border)]">
                     <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider px-1 mb-1.5">Custom Status</p>
@@ -388,7 +388,7 @@ function SidebarContent({
                         value={customStatusMessage}
                         onChange={(e) => setCustomStatusMessage(e.target.value)}
                         placeholder="What are you up to?"
-                        className="flex-1 bg-[var(--t-surface)]/60 border border-[var(--t-border)] rounded-md px-2 py-1.5 text-xs text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-[var(--t-accent)]/50"
+                        className="flex-1 bg-[var(--t-surface)] border border-[var(--t-border)] rounded-md px-2 py-1.5 text-xs placeholder:text-zinc-500 focus:outline-none focus:border-[var(--t-accent)]/50" style={{ color: "var(--t-fg)" }}
                       />
                     </div>
                     {/* Duration picker */}
@@ -432,7 +432,8 @@ function SidebarContent({
                           await supabase.from("users").update({ status: opt.value }).eq("id", currentUserId);
                           setMyProfile((p) => p ? { ...p, status: opt.value } : p);
                         }}
-                        className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium transition-colors hover:bg-white/5 ${myProfile?.status === opt.value ? "text-white" : "text-zinc-400"}`}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium transition-colors hover:bg-white/5"
+                        style={{ color: myProfile?.status === opt.value ? "var(--t-fg)" : "var(--t-fg-2)" }}
                       >
                         <span className={`w-2 h-2 rounded-full shrink-0 ${opt.color}`} />
                         {opt.label}
@@ -561,7 +562,7 @@ export function AppShell({
         onPointerDown={startWindowDrag}
         className="h-10 w-full shrink-0 bg-[var(--t-header)] flex items-center px-4 select-none cursor-grab active:cursor-grabbing z-50 relative"
       >
-        <div className="pl-16 text-[11px] font-medium text-zinc-500 tracking-wide">Tension</div>
+        <div className="pl-16 text-[11px] font-bold tracking-widest uppercase select-none" style={{ color: "var(--t-accent)" }}>Tension</div>
 
         {/* Search bar — centred in the header */}
         <div className="absolute left-1/2 -translate-x-1/2">
