@@ -140,20 +140,23 @@ export function UserProfilePanel({
       ) : (
         <div className="flex-1 overflow-y-auto">
           {/* Avatar + name hero */}
-          <div className="px-5 pt-6 pb-5 border-b border-[var(--t-border)]">
-            <div className="relative w-16 h-16 mb-4">
-              <div className="w-16 h-16 rounded-2xl bg-[var(--t-raised)] flex items-center justify-center overflow-hidden border border-[var(--t-border)]">
-                {profile?.avatar_url ? (
-                  <img src={profile.avatar_url} alt={name} className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-xl font-bold text-zinc-300">{initials}</span>
-                )}
-              </div>
+          <div className="pb-5 border-b border-[var(--t-border)]">
+            {/* Full-width avatar */}
+            <div className="relative w-full aspect-square bg-[var(--t-raised)] overflow-hidden">
+              {profile?.avatar_url ? (
+                <img src={profile.avatar_url} alt={name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <span className="text-6xl font-bold text-zinc-400">{initials}</span>
+                </div>
+              )}
+              {/* Status dot over avatar */}
               {profile?.status && (
-                <span className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-[var(--t-surface)] ${STATUS_COLORS[profile.status] ?? "bg-zinc-500"}`} />
+                <span className={`absolute bottom-3 right-3 w-4 h-4 rounded-full border-2 border-[var(--t-raised)] ${STATUS_COLORS[profile.status] ?? "bg-zinc-500"}`} />
               )}
             </div>
 
+            <div className="px-5 pt-4">
             <h3 className="text-base font-bold text-white leading-tight">{name}</h3>
 
             {/* Bio as role badge */}
@@ -183,6 +186,7 @@ export function UserProfilePanel({
                 <span>{localTime} local time</span>
               </div>
             )}
+            </div>
           </div>
 
           {/* Actions */}
