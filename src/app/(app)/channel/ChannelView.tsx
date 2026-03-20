@@ -755,6 +755,39 @@ export function ChannelView({
   const typingChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const typingTimeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
+  // Reset all local state when the channel changes without a full remount.
+  // This lets the page keep ChannelView mounted (preserving the composer DOM
+  // node) while still clearing per-channel state cleanly.
+  useEffect(() => {
+    setChannel(initialChannel);
+    setAllMessages(initialMessages);
+    setThreadParent(null);
+    setReplyCounts(() => {
+      const counts: Record<string, number> = {};
+      for (const m of initialMessages) {
+        if (m.parent_id) counts[m.parent_id] = (counts[m.parent_id] ?? 0) + 1;
+      }
+      return counts;
+    });
+    setSummaryOpen(false);
+    setSummaryText("");
+    setBriefOpen(false);
+    setBriefText("");
+    setSettingsOpen(false);
+    setPinsOpen(false);
+    setPins([]);
+    setPinnedIds(new Set());
+    setDetailsOpen(false);
+    setProfilePanelUserId(null);
+    setNewMessageIds(new Set());
+    setShowConfetti(false);
+    setShowFirstMessageBanner(false);
+    setTypingUsers(new Map());
+    setShowScrollBtn(false);
+    wasEmptyRef.current = initialMessages.length === 0;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialChannel.id]);
+
   const topLevelMessages = allMessages.filter((m) => m.parent_id === null);
 
   const messageGroups = useMemo(() => {

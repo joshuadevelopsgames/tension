@@ -108,7 +108,6 @@ function ChannelPageContent() {
 
   return (
     <ChannelView
-      key={channel.id}
       channel={channel}
       initialMessages={messages}
     />
