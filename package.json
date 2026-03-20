@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "@livekit/components-react": "^2.9.20",
+    "@livekit/components-styles": "^1.2.0",
     "@supabase/ssr": "^0.9.0",
     "@supabase/supabase-js": "^2.99.1",
     "@tauri-apps/api": "^2.10.1",
@@ -18,6 +20,8 @@
     "@tauri-apps/plugin-updater": "^2.10.0",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
+    "livekit-client": "^2.17.3",
+    "livekit-server-sdk": "^2.15.0",
     "lucide-react": "^0.577.0",
     "next": "16.1.6",
     "openai": "^6.32.0",

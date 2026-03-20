@@ -14,6 +14,8 @@ import { StatusBar } from "./StatusBar";
 import { useTheme } from "./ThemeProvider";
 import { useState, useEffect, useRef, Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { HuddleProvider } from "@/context/HuddleContext";
+import { HuddleWidget } from "./HuddleWidget";
 
 function ModeToggle() {
   const { mode, toggleMode } = useTheme();
@@ -545,6 +547,7 @@ export function AppShell({
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   return (
+    <HuddleProvider>
     <div className="flex flex-col h-screen text-zinc-200 overflow-hidden font-sans border border-[var(--t-border)] shadow-2xl bg-[var(--t-surface)] rounded-xl">
       {/* Top Header Bar — no border, tonal shift only */}
       <div
@@ -592,6 +595,8 @@ export function AppShell({
       </div>
 
       <ProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
+      <HuddleWidget />
     </div>
+    </HuddleProvider>
   );
 }

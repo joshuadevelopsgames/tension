@@ -6,8 +6,9 @@ import { toast } from "sonner";
 import {
   Bookmark, BookmarkCheck, Check, ChevronDown, Copy, FileText, Hash,
   Loader2, MessageSquare, Pencil, Pin, PinOff, Send, Settings, Smile,
-  Sparkles, Trash2, X,
+  Sparkles, Trash2, X, Headphones,
 } from "lucide-react";
+import { useHuddle } from "@/context/HuddleContext";
 import { MessageReactions } from "@/components/MessageReactions";
 import { MessageFiles } from "@/components/MessageFiles";
 import { MessageComposer, type UploadedFile } from "@/components/MessageComposer";
@@ -752,6 +753,7 @@ export function ChannelView({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const cachedProfileRef = useRef<{ full_name: string | null; avatar_url: string | null } | null>(null);
+  const { startHuddle, isConnecting, roomName: activeRoom } = useHuddle();
   const typingChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const typingTimeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
@@ -1120,6 +1122,25 @@ export function ChannelView({
                   ))}
                 </div>
               )}
+
+              {/* Huddle */}
+              <button
+                onClick={() => {
+                  if (!currentUserId) return;
+                  const displayName = cachedProfileRef.current?.full_name || "Someone";
+                  startHuddle(`channel-${channel.id}`, currentUserId, displayName);
+                }}
+                disabled={isConnecting}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors ${
+                  activeRoom === `channel-${channel.id}`
+                    ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                    : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"
+                }`}
+                title="Start a huddle"
+              >
+                {isConnecting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Headphones className="w-3 h-3" />}
+                Huddle
+              </button>
 
               {/* AI: Summarize */}
               <button

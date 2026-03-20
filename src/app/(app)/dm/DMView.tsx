@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { ChevronDown, Send, Sparkles } from "lucide-react";
+import { ChevronDown, Send, Sparkles, Headphones, Loader2 } from "lucide-react";
+import { useHuddle } from "@/context/HuddleContext";
 import { MarkdownMessage } from "@/components/MarkdownMessage";
 import { DateSeparator, isDifferentDay } from "@/components/DateSeparator";
 import { TENSION_AI_USER_ID } from "@/lib/types";
@@ -52,6 +53,7 @@ export function DMView({
   const [smartRepliesLoading, setSmartRepliesLoading] = useState(false);
 
   const myTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const { startHuddle, isConnecting, roomName: activeRoom } = useHuddle();
 
   const otherParticipants = participants.filter((p) => p.user_id !== currentUserId);
   const otherName =
@@ -340,10 +342,31 @@ export function DMView({
             );
           })}
         </div>
-        <div>
+        <div className="flex-1">
           <h2 className="font-semibold text-zinc-100 text-sm">{otherName}</h2>
-          {isAIChat && <p className="text-[10px] text-[var(--t-accent)] font-medium">AI Assistant · powered by Gemini</p>}
+          {isAIChat && <p className="text-[10px] text-[var(--t-accent)] font-medium">AI Assistant · powered by OpenRouter</p>}
         </div>
+
+        {/* Huddle button — not shown for AI chat */}
+        {!isAIChat && (
+          <button
+            onClick={() => {
+              const me = participants.find((p) => p.user_id === currentUserId);
+              const displayName = me?.full_name || "Someone";
+              startHuddle(`dm-${dmId}`, currentUserId, displayName);
+            }}
+            disabled={isConnecting}
+            className={`ml-auto flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors ${
+              activeRoom === `dm-${dmId}`
+                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"
+            }`}
+            title="Start a huddle"
+          >
+            {isConnecting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Headphones className="w-3 h-3" />}
+            Huddle
+          </button>
+        )}
       </header>
 
       <div className="relative flex-1 min-h-0 overflow-hidden">
