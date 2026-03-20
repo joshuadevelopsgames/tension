@@ -329,7 +329,7 @@ function SidebarContent({
                           {customStatusEmoji || "😊"}
                         </button>
                         {emojiPickerOpen && (
-                          <div className="absolute bottom-full left-0 mb-1 bg-zinc-800 border border-white/10 rounded-xl p-2 shadow-2xl grid grid-cols-6 gap-0.5 z-[60] w-44">
+                          <div className="absolute bottom-full left-0 mb-1 bg-zinc-800 border border-white/10 rounded-xl p-2 shadow-2xl grid grid-cols-6 gap-0.5 z-[9999] w-44">
                             {["😊","😄","😂","😅","🤔","🤩","😎","🥳","😴","🤒","😤","🥹",
                               "🔥","✅","🚀","💯","👀","💡","⚡","🎯","📌","⚠️","🏆","✨",
                               "👍","👎","❤️","🎉","💪","🫡","🙏","💀","🤝","👋","🫶","🎊",

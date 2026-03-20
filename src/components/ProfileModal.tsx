@@ -5,6 +5,13 @@ import { createClient } from "@/lib/supabase/client";
 import { Camera, Loader2, X } from "lucide-react";
 import { ModalPortal } from "@/components/ModalPortal";
 
+const STATUS_EMOJIS = [
+  "😊","😄","😂","😅","🤔","🤩","😎","🥳","😴","🤒","😤","🥹",
+  "🔥","✅","🚀","💯","👀","💡","⚡","🎯","📌","⚠️","🏆","✨",
+  "👍","👎","❤️","🎉","💪","🫡","🙏","💀","🤝","👋","🫶","🎊",
+  "☕","🍕","🎸","⚽","🌴","🏖️","🌙","☀️","🌧️","❄️","🌈","🎁",
+];
+
 export function ProfileModal({
   isOpen,
   onClose,
@@ -23,7 +30,8 @@ export function ProfileModal({
   const [statusMessage, setStatusMessage] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  
+  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const supabase = createClient();
 
@@ -193,14 +201,29 @@ export function ProfileModal({
               <div className="space-y-1.5">
                 <label className="text-[11px] font-semibold text-zinc-500 uppercase tracking-widest">Status Message</label>
                 <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={statusEmoji}
-                    onChange={e => setStatusEmoji(e.target.value)}
-                    className="w-12 shrink-0 bg-black/20 border border-white/10 rounded-lg px-2 py-2 text-sm text-center text-white focus:outline-none focus:border-indigo-500/50 transition-colors"
-                    placeholder="😀"
-                    maxLength={2}
-                  />
+                  <div className="relative shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setEmojiPickerOpen((o) => !o)}
+                      className={`w-10 h-10 flex items-center justify-center rounded-lg border text-lg transition-colors ${emojiPickerOpen ? "border-indigo-500/50 bg-indigo-500/10" : "border-white/10 bg-black/20 hover:border-white/20"}`}
+                    >
+                      {statusEmoji || "😀"}
+                    </button>
+                    {emojiPickerOpen && (
+                      <div className="absolute top-full left-0 mt-1 bg-zinc-800 border border-white/10 rounded-xl p-2 shadow-2xl grid grid-cols-6 gap-0.5 z-[300] w-48">
+                        {STATUS_EMOJIS.map((e) => (
+                          <button
+                            key={e}
+                            type="button"
+                            onClick={() => { setStatusEmoji(e); setEmojiPickerOpen(false); }}
+                            className="w-7 h-7 flex items-center justify-center text-base rounded hover:bg-white/10 transition-colors"
+                          >
+                            {e}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   <input
                     type="text"
                     value={statusMessage}
